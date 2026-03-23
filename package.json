@@ -1,0 +1,30 @@
+{
+  "name": "latregister",
+  "version": "1.0.0",
+  "description": "Låtregister — lokal folkemusikkdatabase",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder --mac --arm64"
+  },
+  "build": {
+    "appId": "no.5b.latregister",
+    "productName": "Låtregister",
+    "mac": {
+      "category": "public.app-category.music",
+      "target": [{ "target": "dir", "arch": ["arm64"] }],
+      "icon": "assets/icon.icns"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "src/**/*",
+      "assets/**/*"
+    ],
+    "extraResources": []
+  },
+  "devDependencies": {
+    "electron": "^29.0.0",
+    "electron-builder": "^24.0.0"
+  }
+}
