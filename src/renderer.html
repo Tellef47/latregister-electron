@@ -272,6 +272,10 @@ td.navn{font-family:'Libre Baskerville',serif;font-size:.88rem;}
       <!-- left column -->
       <div id="latside-left" style="width:320px;min-width:220px;flex-shrink:0;overflow-y:auto;padding:1rem 1.1rem;border-right:1px solid var(--border);display:flex;flex-direction:column;gap:1rem;">
         <div>
+          <div class="sec-title" style="margin-bottom:.3rem;">Land</div>
+          <div id="mls-land" style="font-size:.86rem;"></div>
+        </div>
+        <div>
           <div class="sec-title" style="margin-bottom:.3rem;">Kilde</div>
           <div id="mls-kilde" style="font-size:.86rem;"></div>
         </div>
@@ -443,10 +447,49 @@ td.navn{font-family:'Libre Baskerville',serif;font-size:.88rem;}
     </div>
   </div>
 </div>
+
+<!-- Modal: kopier samling -->
+<div class="modal-bg" id="modal-kopier-saml">
+  <div class="modal" style="width:420px;">
+    <h2>Kopier samling</h2>
+    <p id="kopier-saml-info" style="font-size:.85rem;color:var(--ink2);margin-bottom:1rem;"></p>
+    <div style="display:flex;flex-direction:column;gap:.75rem;">
+      <div style="border:1px solid var(--border2);border-radius:5px;padding:.85rem;background:var(--paper2);">
+        <div class="sec-title" style="margin-bottom:.5rem;">Kopier til ny samling</div>
+        <div class="form-row" style="margin-bottom:.5rem;"><label>Navn på ny samling</label><input type="text" id="kopier-ny-navn" placeholder="Samlingsnavnet…"></div>
+        <button class="btn primary" style="width:100%;" onclick="kopierTilNy()">Opprett og kopier</button>
+      </div>
+      <div style="border:1px solid var(--border2);border-radius:5px;padding:.85rem;background:var(--paper2);">
+        <div class="sec-title" style="margin-bottom:.5rem;">Kopier til eksisterende samling</div>
+        <div class="form-row" style="margin-bottom:.5rem;"><label>Velg samling</label>
+          <select id="kopier-eks-saml" style="width:100%;font-family:inherit;font-size:.88rem;padding:.42rem .68rem;border:1px solid var(--border2);border-radius:4px;background:var(--paper);color:var(--ink);outline:none;">
+            <option value="">— velg samling —</option>
+          </select>
+        </div>
+        <button class="btn primary" style="width:100%;" onclick="kopierTilEks()">Kopier til valgt samling</button>
+      </div>
+    </div>
+    <div class="modal-actions" style="margin-top:1rem;">
+      <button class="btn" onclick="closeModal('modal-kopier-saml')">Avbryt</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: saml kolonner -->
+<div class="modal-bg" id="modal-saml-kolonner">
+  <div class="modal" style="width:360px;">
+    <h2>Velg kolonner</h2>
+    <p style="font-size:.84rem;color:var(--ink2);margin-bottom:1rem;">Velg hvilke felt som vises i samlingsvisningen og tas med ved utskrift.</p>
+    <div id="kolonner-checkboxes" style="display:flex;flex-direction:column;gap:.5rem;margin-bottom:1rem;"></div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal('modal-saml-kolonner')">Lukk</button>
+    </div>
+  </div>
+</div>
 <div class="status-bar" id="status-bar"></div>
 
 <script>
-const DEFAULT_DATA={"latar":[{"id":1,"navn":"Älgen klättrar","type":"Vals","kilde":""},{"id":2,"navn":"Bånsull (fra Åmli)","type":"Tone","kilde":""},{"id":3,"navn":"Bestelanden","type":"Ulikeunderelt","kilde":""},{"id":4,"navn":"Bom-bomleiken","type":"Springar","kilde":""},{"id":5,"navn":"Bonde etter Håkon Asheim","type":"Likeunderdelt","kilde":""},{"id":6,"navn":"Brooklyn Bar","type":"Ril","kilde":""},{"id":7,"navn":"Bruremasrsj fra Estland","type":"Marsj","kilde":""},{"id":8,"navn":"Da far sku te by'n","type":"Visetone","kilde":""},{"id":9,"navn":"Dei frearlause menn","type":"Tone","kilde":""},{"id":10,"navn":"Den endelause","type":"Springar","kilde":""},{"id":11,"navn":"Den gamle Sordølen","type":"Likeunderdelt","kilde":""},{"id":12,"navn":"Den kaldsteikte","type":"Likeunderdelt","kilde":""},{"id":13,"navn":"Direktørvalsen","type":"Vals","kilde":""},{"id":14,"navn":"E du galen gut","type":"Visetone","kilde":""},{"id":15,"navn":"Ein etter Neri Neset","type":"Ulikeunderelt","kilde":""},{"id":16,"navn":"En etter Pål Skogum","type":"","kilde":""},{"id":17,"navn":"En liten koselig en","type":"Vals","kilde":""},{"id":18,"navn":"Englis","type":"Ulikeunderelt","kilde":""},{"id":19,"navn":"Espelandsrilen","type":"Ril","kilde":""},{"id":20,"navn":"etc","type":"Reinlender","kilde":""},{"id":21,"navn":"Fanteladda","type":"","kilde":""},{"id":22,"navn":"Fanten","type":"Likeunderdelt","kilde":""},{"id":23,"navn":"Filleværn","type":"Likeunderdelt","kilde":""},{"id":24,"navn":"Fjellrilen","type":"Ril","kilde":""},{"id":25,"navn":"Fossegrimen e TB","type":"Likeunderdelt","kilde":""},{"id":26,"navn":"Gamel-Holin","type":"Springar","kilde":""},{"id":27,"navn":"Gamle Guro","type":"Ulikeunderelt","kilde":""},{"id":28,"navn":"Gamle Guro, springar","type":"Springar","kilde":""},{"id":29,"navn":"Gammel-Husin","type":"Pols","kilde":""},{"id":30,"navn":"Gangar etter Olav Dale","type":"Ulikeunderelt","kilde":""},{"id":31,"navn":"Gangar etter Tarkjell Aslaksson Austad","type":"Ulikeunderelt","kilde":""},{"id":32,"navn":"Gaulslåen e Salve","type":"Likeunderdelt","kilde":""},{"id":33,"navn":"Gauslåen","type":"Likeunderdelt","kilde":""},{"id":34,"navn":"Gaute og Magnhild","type":"","kilde":""},{"id":35,"navn":"Getingen","type":"Polska","kilde":"Ola Bäckström"},{"id":36,"navn":"Guttorm Woxmyrs ril","type":"Ril","kilde":""},{"id":37,"navn":"Hæge du","type":"Springar","kilde":"Salve"},{"id":38,"navn":"Halling etter Beitohaugen","type":"Ulikeunderelt","kilde":"Håkon Asheim"},{"id":39,"navn":"Halling-Jorån","type":"Likeunderdelt","kilde":""},{"id":40,"navn":"Hans Nybøs springdans","type":"Springar","kilde":"Ånon"},{"id":41,"navn":"Holtrilen","type":"Ril","kilde":"Ånon"},{"id":42,"navn":"Ivelandsspringar","type":"Springar","kilde":""},{"id":43,"navn":"Jentebedrageren","type":"Likeunderdelt","kilde":"Salve"},{"id":44,"navn":"Juleverset","type":"Tone","kilde":"Hanne-Kjersti"},{"id":45,"navn":"Kari Hagen","type":"Springar","kilde":"Håko Asheim"},{"id":46,"navn":"Kjaranlien","type":"Likeunderdelt","kilde":"Salve"},{"id":47,"navn":"Kolbrennervisa","type":"Tone","kilde":"Ånon"},{"id":48,"navn":"Kråkevisa","type":"Tone","kilde":""},{"id":49,"navn":"Kubbestollåtten","type":"Likeunderdelt","kilde":"Gunnlaug Lien"},{"id":50,"navn":"Kursdreper'n","type":"Reinlender","kilde":"Ola B Straume"},{"id":51,"navn":"Labayalla","type":"","kilde":"Cätlin"},{"id":52,"navn":"Langemyrrilen","type":"Ril","kilde":""},{"id":53,"navn":"Lars feiar","type":"Springar","kilde":""},{"id":54,"navn":"Lea deg, gamle Ola","type":"Ulikeunderelt","kilde":""},{"id":55,"navn":"Lilleboa","type":"Reinlender","kilde":""},{"id":56,"navn":"Linborgjen","type":"Springar","kilde":""},{"id":57,"navn":"Linborgjen II","type":"Springar","kilde":""},{"id":58,"navn":"Livalsen","type":"Vals","kilde":""},{"id":59,"navn":"Nu solen går ned","type":"","kilde":""},{"id":60,"navn":"Ola Dyremyr","type":"Ril","kilde":""},{"id":61,"navn":"Opptaksprøva","type":"Ulikeunderelt","kilde":""},{"id":62,"navn":"På åkeren ut","type":"Tone","kilde":""},{"id":63,"navn":"Pers springar","type":"Springar","kilde":""},{"id":64,"navn":"Polka","type":"","kilde":""},{"id":65,"navn":"Polska av Eva","type":"","kilde":""},{"id":66,"navn":"Prestegangaren","type":"Likeunderdelt","kilde":""},{"id":67,"navn":"Raklekjølken","type":"Springar","kilde":""},{"id":68,"navn":"Rasmus Storm-polser","type":"Polska","kilde":""},{"id":69,"navn":"Reinlender etter Ola B Rise","type":"Reinlender","kilde":""},{"id":70,"navn":"Reisaren","type":"Ulikeunderelt","kilde":""},{"id":71,"navn":"Riksbanken","type":"Pols","kilde":""},{"id":72,"navn":"Ril etter Emmanuel Lauen 1","type":"","kilde":""},{"id":73,"navn":"ril etter Emmanuel Lauen 2","type":"","kilde":""},{"id":74,"navn":"Seljefløytegangar","type":"","kilde":""},{"id":75,"navn":"Sigurd Soredal","type":"","kilde":""},{"id":76,"navn":"Sjøfløytespringar","type":"Springar","kilde":""},{"id":77,"navn":"Skårsvikjen","type":"Ulikeunderelt","kilde":""},{"id":78,"navn":"Skomakerhallingen","type":"Ulikeunderelt","kilde":""},{"id":79,"navn":"Skuldalsbrura","type":"Ulikeunderelt","kilde":""},{"id":80,"navn":"Sordølen","type":"Likeunderdelt","kilde":""},{"id":81,"navn":"Soteroen","type":"Ulikeunderelt","kilde":""},{"id":82,"navn":"Spinnaren","type":"","kilde":""},{"id":83,"navn":"Springar etc","type":"Springar","kilde":""},{"id":84,"navn":"Springar etter Knut Nord-Juveli","type":"Springar","kilde":""},{"id":85,"navn":"Springdans fra Vestfold","type":"Springar","kilde":""},{"id":86,"navn":"Springleik","type":"Springar","kilde":""},{"id":87,"navn":"Stevtoner","type":"","kilde":""},{"id":88,"navn":"Stuvstadhalling","type":"Likeunderdelt","kilde":""},{"id":89,"navn":"Sule Skerry","type":"","kilde":""},{"id":90,"navn":"Svarteborgaren","type":"Polska","kilde":""},{"id":91,"navn":"Tone etter Hanne Kjersti","type":"Tone","kilde":""},{"id":92,"navn":"Tor Halvorsens vals","type":"","kilde":""},{"id":93,"navn":"Tostensen","type":"Ril","kilde":""},{"id":94,"navn":"Tri hjarter på ei snor","type":"Springar","kilde":""},{"id":95,"navn":"Triolåter","type":"","kilde":""},{"id":96,"navn":"Tukthusen","type":"Springar","kilde":""},{"id":97,"navn":"Tveitlien","type":"Ulikeunderelt","kilde":""},{"id":98,"navn":"Tversover'n","type":"Ulikeunderelt","kilde":""},{"id":99,"navn":"Ufredsslåtten","type":"Ulikeunderelt","kilde":""},{"id":100,"navn":"Vals e Olav B Straume","type":"Vals","kilde":""},{"id":101,"navn":"Vals etter Åni Smeland","type":"Vals","kilde":""},{"id":102,"navn":"Vals etter Peder i Lia","type":"Vals","kilde":""},{"id":103,"navn":"Vårnaua","type":"Ulikeunderelt","kilde":""},{"id":104,"navn":"Venner og frender","type":"","kilde":""},{"id":105,"navn":"Vetl-Imbert","type":"Springar","kilde":""},{"id":106,"navn":"Vierlivalsen","type":"","kilde":""},{"id":107,"navn":"Vigstamoin","type":"Springar","kilde":""},{"id":108,"navn":"Visa från Malung","type":"","kilde":""},{"id":109,"navn":"VossastRil","type":"","kilde":""}],"samlingar":[{"id":1,"navn":"Tellefs sjøfløyte","type":"","år":"2016"},{"id":2,"navn":"Den norske sekkepipa","type":"","år":"2015"},{"id":3,"navn":"North Sea Music","type":"","år":"1997"},{"id":4,"navn":"Slinkombas","type":"","år":"1982"},{"id":5,"navn":"..og bas igjen","type":"","år":"1979"},{"id":6,"navn":"Den norske sekkepipa II","type":"","år":""},{"id":7,"navn":"Reel Date","type":"","år":""},{"id":8,"navn":"Upstairs in a Tent","type":"","år":""}],"koblingar":[{"latId":2,"samlId":4},{"latId":35,"samlId":8}],"nextLatId":110,"nextSamlId":9,"latTyper":["Likeunderdelt","Marsj","Pols","Polska","Reinlender","Ril","Springar","Tone","Ulikeunderelt","Vals","Visetone"],"instTyper":["Fele","Sekkepipe","Sjøfløyte"]};
+const DEFAULT_DATA={"latar":[{"id":1,"navn":"Älgen klättrar","type":"Vals","kilde":""},{"id":2,"navn":"Bånsull (fra Åmli)","type":"Tone","kilde":""},{"id":3,"navn":"Bestelanden","type":"Ulikeunderelt","kilde":""},{"id":4,"navn":"Bom-bomleiken","type":"Springar","kilde":""},{"id":5,"navn":"Bonde etter Håkon Asheim","type":"Likeunderdelt","kilde":""},{"id":6,"navn":"Brooklyn Bar","type":"Ril","kilde":""},{"id":7,"navn":"Bruremasrsj fra Estland","type":"Marsj","kilde":""},{"id":8,"navn":"Da far sku te by'n","type":"Visetone","kilde":""},{"id":9,"navn":"Dei frearlause menn","type":"Tone","kilde":""},{"id":10,"navn":"Den endelause","type":"Springar","kilde":""},{"id":11,"navn":"Den gamle Sordølen","type":"Likeunderdelt","kilde":""},{"id":12,"navn":"Den kaldsteikte","type":"Likeunderdelt","kilde":""},{"id":13,"navn":"Direktørvalsen","type":"Vals","kilde":""},{"id":14,"navn":"E du galen gut","type":"Visetone","kilde":""},{"id":15,"navn":"Ein etter Neri Neset","type":"Ulikeunderelt","kilde":""},{"id":16,"navn":"En etter Pål Skogum","type":"","kilde":""},{"id":17,"navn":"En liten koselig en","type":"Vals","kilde":""},{"id":18,"navn":"Englis","type":"Ulikeunderelt","kilde":""},{"id":19,"navn":"Espelandsrilen","type":"Ril","kilde":""},{"id":20,"navn":"etc","type":"Reinlender","kilde":""},{"id":21,"navn":"Fanteladda","type":"","kilde":""},{"id":22,"navn":"Fanten","type":"Likeunderdelt","kilde":""},{"id":23,"navn":"Filleværn","type":"Likeunderdelt","kilde":""},{"id":24,"navn":"Fjellrilen","type":"Ril","kilde":""},{"id":25,"navn":"Fossegrimen e TB","type":"Likeunderdelt","kilde":""},{"id":26,"navn":"Gamel-Holin","type":"Springar","kilde":""},{"id":27,"navn":"Gamle Guro","type":"Ulikeunderelt","kilde":""},{"id":28,"navn":"Gamle Guro, springar","type":"Springar","kilde":""},{"id":29,"navn":"Gammel-Husin","type":"Pols","kilde":""},{"id":30,"navn":"Gangar etter Olav Dale","type":"Ulikeunderelt","kilde":""},{"id":31,"navn":"Gangar etter Tarkjell Aslaksson Austad","type":"Ulikeunderelt","kilde":""},{"id":32,"navn":"Gaulslåen e Salve","type":"Likeunderdelt","kilde":""},{"id":33,"navn":"Gauslåen","type":"Likeunderdelt","kilde":""},{"id":34,"navn":"Gaute og Magnhild","type":"","kilde":""},{"id":35,"navn":"Getingen","type":"Polska","kilde":"Ola Bäckström"},{"id":36,"navn":"Guttorm Woxmyrs ril","type":"Ril","kilde":""},{"id":37,"navn":"Hæge du","type":"Springar","kilde":"Salve"},{"id":38,"navn":"Halling etter Beitohaugen","type":"Ulikeunderelt","kilde":"Håkon Asheim"},{"id":39,"navn":"Halling-Jorån","type":"Likeunderdelt","kilde":""},{"id":40,"navn":"Hans Nybøs springdans","type":"Springar","kilde":"Ånon"},{"id":41,"navn":"Holtrilen","type":"Ril","kilde":"Ånon"},{"id":42,"navn":"Ivelandsspringar","type":"Springar","kilde":""},{"id":43,"navn":"Jentebedrageren","type":"Likeunderdelt","kilde":"Salve"},{"id":44,"navn":"Juleverset","type":"Tone","kilde":"Hanne-Kjersti"},{"id":45,"navn":"Kari Hagen","type":"Springar","kilde":"Håko Asheim"},{"id":46,"navn":"Kjaranlien","type":"Likeunderdelt","kilde":"Salve"},{"id":47,"navn":"Kolbrennervisa","type":"Tone","kilde":"Ånon"},{"id":48,"navn":"Kråkevisa","type":"Tone","kilde":""},{"id":49,"navn":"Kubbestollåtten","type":"Likeunderdelt","kilde":"Gunnlaug Lien"},{"id":50,"navn":"Kursdreper'n","type":"Reinlender","kilde":"Ola B Straume"},{"id":51,"navn":"Labayalla","type":"","kilde":"Cätlin"},{"id":52,"navn":"Langemyrrilen","type":"Ril","kilde":""},{"id":53,"navn":"Lars feiar","type":"Springar","kilde":""},{"id":54,"navn":"Lea deg, gamle Ola","type":"Ulikeunderelt","kilde":""},{"id":55,"navn":"Lilleboa","type":"Reinlender","kilde":""},{"id":56,"navn":"Linborgjen","type":"Springar","kilde":""},{"id":57,"navn":"Linborgjen II","type":"Springar","kilde":""},{"id":58,"navn":"Livalsen","type":"Vals","kilde":""},{"id":59,"navn":"Nu solen går ned","type":"","kilde":""},{"id":60,"navn":"Ola Dyremyr","type":"Ril","kilde":""},{"id":61,"navn":"Opptaksprøva","type":"Ulikeunderelt","kilde":""},{"id":62,"navn":"På åkeren ut","type":"Tone","kilde":""},{"id":63,"navn":"Pers springar","type":"Springar","kilde":""},{"id":64,"navn":"Polka","type":"","kilde":""},{"id":65,"navn":"Polska av Eva","type":"","kilde":""},{"id":66,"navn":"Prestegangaren","type":"Likeunderdelt","kilde":""},{"id":67,"navn":"Raklekjølken","type":"Springar","kilde":""},{"id":68,"navn":"Rasmus Storm-polser","type":"Polska","kilde":""},{"id":69,"navn":"Reinlender etter Ola B Rise","type":"Reinlender","kilde":""},{"id":70,"navn":"Reisaren","type":"Ulikeunderelt","kilde":""},{"id":71,"navn":"Riksbanken","type":"Pols","kilde":""},{"id":72,"navn":"Ril etter Emmanuel Lauen 1","type":"","kilde":""},{"id":73,"navn":"ril etter Emmanuel Lauen 2","type":"","kilde":""},{"id":74,"navn":"Seljefløytegangar","type":"","kilde":""},{"id":75,"navn":"Sigurd Soredal","type":"","kilde":""},{"id":76,"navn":"Sjøfløytespringar","type":"Springar","kilde":""},{"id":77,"navn":"Skårsvikjen","type":"Ulikeunderelt","kilde":""},{"id":78,"navn":"Skomakerhallingen","type":"Ulikeunderelt","kilde":""},{"id":79,"navn":"Skuldalsbrura","type":"Ulikeunderelt","kilde":""},{"id":80,"navn":"Sordølen","type":"Likeunderdelt","kilde":""},{"id":81,"navn":"Soteroen","type":"Ulikeunderelt","kilde":""},{"id":82,"navn":"Spinnaren","type":"","kilde":""},{"id":83,"navn":"Springar etc","type":"Springar","kilde":""},{"id":84,"navn":"Springar etter Knut Nord-Juveli","type":"Springar","kilde":""},{"id":85,"navn":"Springdans fra Vestfold","type":"Springar","kilde":""},{"id":86,"navn":"Springleik","type":"Springar","kilde":""},{"id":87,"navn":"Stevtoner","type":"","kilde":""},{"id":88,"navn":"Stuvstadhalling","type":"Likeunderdelt","kilde":""},{"id":89,"navn":"Sule Skerry","type":"","kilde":""},{"id":90,"navn":"Svarteborgaren","type":"Polska","kilde":""},{"id":91,"navn":"Tone etter Hanne Kjersti","type":"Tone","kilde":""},{"id":92,"navn":"Tor Halvorsens vals","type":"","kilde":""},{"id":93,"navn":"Tostensen","type":"Ril","kilde":""},{"id":94,"navn":"Tri hjarter på ei snor","type":"Springar","kilde":""},{"id":95,"navn":"Triolåter","type":"","kilde":""},{"id":96,"navn":"Tukthusen","type":"Springar","kilde":""},{"id":97,"navn":"Tveitlien","type":"Ulikeunderelt","kilde":""},{"id":98,"navn":"Tversover'n","type":"Ulikeunderelt","kilde":""},{"id":99,"navn":"Ufredsslåtten","type":"Ulikeunderelt","kilde":""},{"id":100,"navn":"Vals e Olav B Straume","type":"Vals","kilde":""},{"id":101,"navn":"Vals etter Åni Smeland","type":"Vals","kilde":""},{"id":102,"navn":"Vals etter Peder i Lia","type":"Vals","kilde":""},{"id":103,"navn":"Vårnaua","type":"Ulikeunderelt","kilde":""},{"id":104,"navn":"Venner og frender","type":"","kilde":""},{"id":105,"navn":"Vetl-Imbert","type":"Springar","kilde":""},{"id":106,"navn":"Vierlivalsen","type":"","kilde":""},{"id":107,"navn":"Vigstamoin","type":"Springar","kilde":""},{"id":108,"navn":"Visa från Malung","type":"","kilde":""},{"id":109,"navn":"VossastRil","type":"","kilde":""}],"samlingar":[{"id":1,"navn":"Tellefs sjøfløyte","type":"","år":"2016"},{"id":2,"navn":"Den norske sekkepipa","type":"","år":"2015"},{"id":3,"navn":"North Sea Music","type":"","år":"1997"},{"id":4,"navn":"Slinkombas","type":"","år":"1982"},{"id":5,"navn":"..og bas igjen","type":"","år":"1979"},{"id":6,"navn":"Den norske sekkepipa II","type":"","år":""},{"id":7,"navn":"Reel Date","type":"","år":""},{"id":8,"navn":"Upstairs in a Tent","type":"","år":""}],"koblingar":[{"latId":2,"samlId":4},{"latId":35,"samlId":8}],"nextLatId":110,"nextSamlId":9,"latTyper":["Likeunderdelt","Marsj","Pols","Polska","Reinlender","Ril","Springar","Tone","Ulikeunderelt","Vals","Visetone"],"instTyper":["Fele","Sekkepipe","Sjøfløyte"],"landTyper":["Norge","Sverige","Irland"]};
 
 // Electron: data stored as JSON files via IPC
 let data={}, noter={}, noter2={}, latSort={field:'namn',asc:true}; // noter2: {latId:[{tittel,sti,kommentar}]}
@@ -466,6 +509,9 @@ async function load(){
   if(!data.nextSamlId)data.nextSamlId=9;
   if(!data.instTyper)data.instTyper=['Fele','Sekkepipe','Sjøfløyte'];
   if(!data.samlOrder)data.samlOrder={};
+  if(!data.landTyper)data.landTyper=['Norge','Sverige','Irland'];
+  if(!data.samlKolonner)data.samlKolonner={};
+  data.latar.forEach(l=>{if(l.land===undefined)l.land='';});
   data.latar.forEach(l=>{if(!l.instrument)l.instrument=[];});
 }
 function save(){
@@ -603,6 +649,7 @@ function renderLatar(){
     const harNoter=(noter[lat.id]||noter2[lat.id]?.length);
     tr.innerHTML=`<td class="navn"><a class="lat-navn-link" onclick="openLatSide(${lat.id})">${esc(lat.navn)}</a>${harNoter?'<span class="notat-dot" title="Har noter">♩</span>':''}</td>
     <td><div class="type-cell" id="tc-${lat.id}">${renderTypeCell(lat.id)}</div></td>
+    <td><div class="land-cell" id="ldc-${lat.id}">${renderLandCell(lat.id)}</div></td>
     <td><div class="kilde-cell" id="kc-${lat.id}">${renderKildeCell(lat.id)}</div></td>
     <td><div class="saml-cell" id="sc-${lat.id}">${renderSamlCell(lat.id)}</div></td>
     <td><div class="inst-cell" id="ic-${lat.id}">${renderInstCell(lat.id)}</div></td>
@@ -633,6 +680,84 @@ function getAllKilder(){
   return [...set].sort((a,b)=>a.localeCompare(b,'no'));
 }
 
+
+/* ── LAND ── */
+function renderLandCell(latId){
+  const lat=data.latar.find(l=>l.id===latId);if(!lat)return '';
+  const land=lat.land||'';
+  return `<select class="inst-inline-select" style="color:var(--ink2);border-color:var(--border2);" onchange="setLandFromSelect(${latId},this)">
+    <option value="">${land||'+ Land'}</option>
+    ${data.landTyper.filter(l=>l!==land).map(l=>`<option value="${esc(l)}">${esc(l)}</option>`).join('')}
+    <option value="__ny__">— Nytt land…</option>
+    ${land?`<option value="__fjern__">Fjern</option>`:''}
+  </select>${land?`<span class="kilde-text" style="margin-left:.25rem;">${esc(land)}</span>`:''}`;
+}
+
+function setLandFromSelect(latId,sel){
+  let val=sel.value;if(!val)return;
+  const lat=data.latar.find(l=>l.id===latId);if(!lat)return;
+  if(val==='__fjern__'){lat.land='';save();refreshLandCell(latId);return;}
+  if(val==='__ny__'){showNyttLandInput(latId,sel);return;}
+  lat.land=val;save();refreshLandCell(latId);
+  if(document.getElementById('mls-tittel'))renderLatsideLand(latId);
+}
+
+function refreshLandCell(latId){
+  const c=document.getElementById('ldc-'+latId);if(c)c.innerHTML=renderLandCell(latId);
+}
+
+function showNyttLandInput(latId,sel){
+  sel.value='';
+  const cell=document.getElementById('ldc-'+latId);if(!cell)return;
+  const row=document.createElement('div');
+  row.style.cssText='display:flex;gap:4px;margin-top:4px;align-items:center;';
+  row.innerHTML=`<input id="ny-land-inp-${latId}" type="text" placeholder="Landnavn…" style="font-family:inherit;font-size:.78rem;padding:2px 6px;border:1px solid var(--accent2);border-radius:3px;background:var(--paper);color:var(--ink);flex:1;outline:none;">
+  <button onclick="confirmNyttLand(${latId})" style="font-size:.72rem;padding:2px 7px;border:1px solid var(--green);border-radius:3px;background:var(--green-bg);color:var(--green);cursor:pointer;">OK</button>
+  <button onclick="this.parentElement.remove()" style="font-size:.72rem;padding:2px 6px;border:1px solid var(--border2);border-radius:3px;background:none;color:var(--ink3);cursor:pointer;">✕</button>`;
+  cell.appendChild(row);
+  setTimeout(()=>document.getElementById('ny-land-inp-'+latId)?.focus(),30);
+  document.getElementById('ny-land-inp-'+latId)?.addEventListener('keydown',e=>{
+    if(e.key==='Enter')confirmNyttLand(latId);
+    if(e.key==='Escape')row.remove();
+  });
+}
+
+function confirmNyttLand(latId){
+  const inp=document.getElementById('ny-land-inp-'+latId);if(!inp)return;
+  const val=inp.value.trim();if(!val)return;
+  if(!data.landTyper.includes(val))data.landTyper.push(val);
+  const lat=data.latar.find(l=>l.id===latId);if(!lat)return;
+  lat.land=val;save();refreshLandCell(latId);
+  if(document.getElementById('mls-tittel'))renderLatsideLand(latId);
+}
+
+function renderLatsideLand(latId){
+  const el=document.getElementById('mls-land');if(!el)return;
+  const lat=data.latar.find(l=>l.id===latId);if(!lat)return;
+  const land=lat.land||'';
+  el.innerHTML=`<div style="display:flex;align-items:center;gap:.4rem;flex-wrap:wrap;">
+    ${land?`<span class="kilde-text">${esc(land)}</span>`:'<span style="color:var(--ink3);font-style:italic;font-size:.84rem;">Ikke angitt</span>'}
+    <select class="inst-inline-select" onchange="setLatsideLand(${latId},this)" style="color:var(--ink2);">
+      <option value="">${land?'Endre…':'+ Land'}</option>
+      ${data.landTyper.filter(l=>l!==land).map(l=>`<option value="${esc(l)}">${esc(l)}</option>`).join('')}
+      <option value="__ny__">— Nytt land…</option>
+      ${land?`<option value="__fjern__">Fjern</option>`:''}
+    </select>
+  </div>`;
+}
+
+function setLatsideLand(latId,sel){
+  let val=sel.value;if(!val)return;
+  const lat=data.latar.find(l=>l.id===latId);if(!lat)return;
+  if(val==='__fjern__'){lat.land='';save();renderLatsideLand(latId);refreshLandCell(latId);return;}
+  if(val==='__ny__'){
+    const ny=window._nyttLandPrompt=prompt('Nytt land:');
+    if(!ny||!ny.trim())return;
+    if(!data.landTyper.includes(ny.trim()))data.landTyper.push(ny.trim());
+    val=ny.trim();
+  }
+  lat.land=val;save();renderLatsideLand(latId);refreshLandCell(latId);
+}
 function renderKildeCell(latId){
   const lat=data.latar.find(l=>l.id===latId);if(!lat)return '';
   const kilde=lat.kilde||'';
@@ -742,6 +867,7 @@ function renderKildeDetail(kilde){
   const det=document.getElementById('kilde-detail');if(!det)return;
   const latar=data.latar.filter(l=>l.kilde===kilde);
   const kildeEsc=esc(kilde).replace(/'/g,"\'");
+  const cols=getSamlKolonner(samlId);
   det.innerHTML=`
     <div class="saml-detail-header">
       <h2>${esc(kilde)}</h2>
@@ -965,6 +1091,9 @@ function samlDrop(e,samlId){
   _dragSrcEl=null;
   const kobIds=data.koblingar.filter(k=>k.samlId===samlId).map(k=>k.latId);
   if(!data.samlOrder)data.samlOrder={};
+  if(!data.landTyper)data.landTyper=['Norge','Sverige','Irland'];
+  if(!data.samlKolonner)data.samlKolonner={};
+  data.latar.forEach(l=>{if(l.land===undefined)l.land='';});
   const ord=data.samlOrder[samlId]?
     [...data.samlOrder[samlId].filter(id=>kobIds.includes(id)),...kobIds.filter(id=>!data.samlOrder[samlId].includes(id))]:
     [...kobIds];
@@ -973,6 +1102,102 @@ function samlDrop(e,samlId){
   ord.splice(fi,1);ord.splice(ti,0,fromId);
   data.samlOrder[samlId]=ord;
   save();renderSamlDetail(samlId);
+}
+
+/* ── KOPIER SAMLING ── */
+let _kopierFraSamlId=null;
+
+
+/* ── SAML KOLONNER ── */
+const ALLE_FELT=[{id:'type',label:'Type'},{id:'land',label:'Land'},{id:'kilde',label:'Kilde'},{id:'instrument',label:'Instrument'}];
+let _kolonnerSamlId=null;
+
+function getSamlKolonner(samlId){
+  if(!data.samlKolonner)data.samlKolonner={};
+  if(!data.samlKolonner[samlId])return ALLE_FELT.map(f=>f.id);
+  return data.samlKolonner[samlId];
+}
+
+function openSamlKolonner(samlId){
+  _kolonnerSamlId=samlId;
+  const aktive=getSamlKolonner(samlId);
+  const box=document.getElementById('kolonner-checkboxes');
+  box.innerHTML=ALLE_FELT.map(f=>`
+    <label style="display:flex;align-items:center;gap:.5rem;font-size:.88rem;cursor:pointer;">
+      <input type="checkbox" ${aktive.includes(f.id)?'checked':''} onchange="toggleKolonne('${f.id}',this.checked)">
+      ${f.label}
+    </label>`).join('');
+  document.getElementById('modal-saml-kolonner').classList.add('open');
+}
+
+function toggleKolonne(felt,val){
+  if(!_kolonnerSamlId)return;
+  if(!data.samlKolonner)data.samlKolonner={};
+  let cols=getSamlKolonner(_kolonnerSamlId);
+  if(val){if(!cols.includes(felt))cols.push(felt);}
+  else cols=cols.filter(c=>c!==felt);
+  data.samlKolonner[_kolonnerSamlId]=cols;
+  save();renderSamlDetail(_kolonnerSamlId);
+}
+function openKopierSaml(samlId){
+  _kopierFraSamlId=samlId;
+  const saml=data.samlingar.find(s=>s.id===samlId);if(!saml)return;
+  const antall=data.koblingar.filter(k=>k.samlId===samlId).length;
+  document.getElementById('kopier-saml-info').textContent=
+    'Kopier innholdet fra «'+saml.navn+'» ('+antall+' låter) til en annen samling.';
+  // Fyll eksisterende samlinger (unntatt denne)
+  const sel=document.getElementById('kopier-eks-saml');
+  sel.innerHTML='<option value="">— velg samling —</option>';
+  data.samlingar.filter(s=>s.id!==samlId).forEach(s=>{
+    const o=document.createElement('option');o.value=s.id;o.textContent=s.navn;sel.appendChild(o);
+  });
+  // Fyll inn foreslått navn
+  document.getElementById('kopier-ny-navn').value=saml.navn+' (kopi)';
+  document.getElementById('modal-kopier-saml').classList.add('open');
+}
+
+function _kopierLater(fraSamlId, tilSamlId){
+  const fraIds=data.koblingar.filter(k=>k.samlId===fraSamlId).map(k=>k.latId);
+  const eksIds=new Set(data.koblingar.filter(k=>k.samlId===tilSamlId).map(k=>k.latId));
+  // Flett sammen — legg til de som ikke allerede finnes
+  fraIds.forEach(id=>{
+    if(!eksIds.has(id))data.koblingar.push({latId:id,samlId:tilSamlId});
+  });
+  // Kopier rekkefølge fra kilde hvis målsamlingen ikke har ordre
+  if(data.samlOrder&&data.samlOrder[fraSamlId]){
+    if(!data.samlOrder)data.samlOrder={};
+  if(!data.landTyper)data.landTyper=['Norge','Sverige','Irland'];
+  if(!data.samlKolonner)data.samlKolonner={};
+  data.latar.forEach(l=>{if(l.land===undefined)l.land='';});
+    const eksOrd=data.samlOrder[tilSamlId]||[];
+    const nyOrd=[...eksOrd,...data.samlOrder[fraSamlId].filter(id=>!eksOrd.includes(id)&&fraIds.includes(id))];
+    data.samlOrder[tilSamlId]=nyOrd;
+  }
+}
+
+function kopierTilNy(){
+  const navn=document.getElementById('kopier-ny-navn').value.trim();
+  if(!navn){alert('Fyll inn navn på ny samling.');return;}
+  if(!_kopierFraSamlId)return;
+  const nyId=data.nextSamlId++;
+  data.samlingar.push({id:nyId,navn,type:'',år:''});
+  _kopierLater(_kopierFraSamlId,nyId);
+  save();closeModal('modal-kopier-saml');
+  buildFilters();renderSamlList();
+  activeSamlId=nyId;renderSamlList();renderSamlDetail(nyId);
+  showStatus('Samling «'+navn+'» opprettet med kopiert innhold');
+}
+
+function kopierTilEks(){
+  const tilId=parseInt(document.getElementById('kopier-eks-saml').value);
+  if(!tilId){alert('Velg en samling.');return;}
+  if(!_kopierFraSamlId)return;
+  _kopierLater(_kopierFraSamlId,tilId);
+  save();closeModal('modal-kopier-saml');
+  buildFilters();renderSamlList();
+  activeSamlId=tilId;renderSamlList();renderSamlDetail(tilId);
+  const saml=data.samlingar.find(s=>s.id===tilId);
+  showStatus('Innhold kopiert til «'+(saml?saml.navn:'samlingen')+'»');
 }
 function slettSamling(samlId){
   const saml=data.samlingar.find(s=>s.id===samlId);if(!saml)return;
@@ -1078,17 +1303,19 @@ function printSamling(samlId){
   const kobIds2=data.koblingar.filter(k=>k.samlId===samlId).map(k=>k.latId);
   const ord2=data.samlOrder&&data.samlOrder[samlId]?[...data.samlOrder[samlId].filter(id=>kobIds2.includes(id)),...kobIds2.filter(id=>!(data.samlOrder[samlId]||[]).includes(id))]:[...kobIds2];
   const linked=ord2.map(id=>data.latar.find(l=>l.id===id)).filter(Boolean);
+  const pCols=getSamlKolonner(samlId);
   const rows=linked.map((l,i)=>`
     <tr>
       <td>${i+1}</td>
       <td>${esc(l.navn)}</td>
-      <td>${esc(l.type)||''}</td>
-      <td>${esc(l.kilde)||''}</td>
-      <td>${(l.instrument||[]).join(', ')}</td>
+      ${pCols.includes('type')?`<td>${esc(l.type)||''}</td>`:''}
+      ${pCols.includes('land')?`<td>${esc(l.land)||''}</td>`:''}
+      ${pCols.includes('kilde')?`<td>${esc(l.kilde)||''}</td>`:''}
+      ${pCols.includes('instrument')?`<td>${(l.instrument||[]).join(', ')}</td>`:''}
     </tr>`).join('');
   const meta=[saml.type,saml.år].filter(Boolean).join(' · ');
   const w=window.open('','_blank','width=900,height=700');
-  w.document.write(`<!DOCTYPE html><html lang="no"><head><meta charset="UTF-8">
+  w.document.write(`<!DOCTYPE html)<html lang="no"><head><meta charset="UTF-8">
   <title>${esc(saml.navn)}</title>
   <style>
     body{font-family:Georgia,serif;margin:2.5cm 2cm;color:#1a1008;}
@@ -1107,7 +1334,7 @@ function printSamling(samlId){
   <h1>${esc(saml.navn)}</h1>
   <div class="meta">${meta} &nbsp;·&nbsp; ${linked.length} låtar</div>
   <table>
-    <thead><tr><th>#</th><th>Navn</th><th>Type</th><th>Kilde</th><th>Instrument</th></tr></thead>
+    <thead><tr><th>#</th><th>Navn</th>${pCols.includes('type')?'<th>Type</th>':''}${pCols.includes('land')?'<th>Land</th>':''}${pCols.includes('kilde')?'<th>Kilde</th>':''}${pCols.includes('instrument')?'<th>Instrument</th>':''}</tr></thead>
     <tbody>${rows}</tbody>
   </table>
   </body></html>`);
@@ -1202,6 +1429,7 @@ function renderSamlDetail(samlId){
   const orderedIds=[...order.filter(id=>kobIds.includes(id)),...kobIds.filter(id=>!order.includes(id))];
   const linked=orderedIds.map(id=>data.latar.find(l=>l.id===id)).filter(Boolean);
   const det=document.getElementById('saml-detail');
+  const cols=getSamlKolonner(samlId);
   det.innerHTML=`
     <div class="saml-detail-header">
       <h2>${esc(saml.navn)}</h2>
@@ -1210,6 +1438,8 @@ function renderSamlDetail(samlId){
       <button class="btn" onclick="printSamling(${saml.id})">⎙ Skriv ut</button>
       <button class="btn" onclick="printSettliste(${saml.id})">⎙ Settliste</button>
       <label style="display:flex;align-items:center;gap:.35rem;font-size:.78rem;color:var(--ink2);cursor:pointer;"><input type="checkbox" ${saml.visIGraf!==false?"checked":""} onchange="toggleVisIGraf(${saml.id},this.checked)"> Med i graf</label>
+      <button class="btn" onclick="openSamlKolonner(${saml.id})">Kolonner</button>
+      <button class="btn" onclick="openKopierSaml(${saml.id})">Kopier</button>
       <button class="btn" style="color:var(--accent);border-color:var(--accent2);" onclick="slettSamling(${saml.id})">Slett</button>
       <button class="btn" onclick="openEditSaml(${saml.id})">Rediger</button>
     </div>
@@ -1226,7 +1456,10 @@ function renderSamlDetail(samlId){
           :linked.map(l=>`<div class="lat-in-saml" draggable="true" data-lid="${l.id}" data-sid="${samlId}" ondragstart="samlDragStart(event)" ondragend="this.style.opacity='1'" ondragover="samlDragOver(event)" ondragleave="samlDragLeave(event)" ondrop="samlDrop(event,${samlId})">
             <span class="drag-handle" title="Dra for å sortere">⠿</span>
             <a class="lat-navn-link" onclick="openLatSide(${l.id})">${esc(l.navn)}</a>
-            ${l.type?`<span class="li-type">${esc(l.type)}</span>`:''}
+            ${cols.includes('type')&&l.type?`<span class="li-type">${esc(l.type)}</span>`:''}
+            ${cols.includes('land')&&l.land?`<span class="li-type" style="color:var(--green);">${esc(l.land)}</span>`:''}
+            ${cols.includes('kilde')&&l.kilde?`<span class="li-type" style="color:var(--ink3);font-style:italic;">${esc(l.kilde)}</span>`:''}
+            ${cols.includes('instrument')&&(l.instrument||[]).length?`<span class="li-type">${(l.instrument||[]).join(', ')}</span>`:''}
             <button class="remove-btn" onclick="removeLatFromSaml(${l.id},${samlId})">Fjern</button>
           </div>`).join('')}
       </div>
@@ -1332,6 +1565,7 @@ function openLatSide(latId){
   tittelEl.style.cursor='text';
   tittelEl.onblur=()=>{ const lat2=data.latar.find(l=>l.id===latId); if(lat2&&tittelEl.textContent.trim()){lat2.navn=tittelEl.textContent.trim();save();renderLatar();} };
   renderLatsideType(latId);
+  renderLatsideLand(latId);
   renderLatsideKilde(latId);
   renderLatsideInst(latId);
   const samlar=getSamlForLat(latId);
