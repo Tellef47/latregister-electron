@@ -101,6 +101,32 @@ ipcMain.handle('open-pdf', (_, filePath) => {
   return true
 })
 
+ipcMain.handle('open-graph', (_, data) => {
+  const win = new BrowserWindow({
+    width: 1200,
+    height: 800,
+    minWidth: 600,
+    minHeight: 400,
+    title: 'Nettverksoversikt — Låtregister',
+    webPreferences: { nodeIntegration: false, contextIsolation: false },
+    backgroundColor: '#faf7f2',
+  })
+  win.loadFile(path.join(__dirname, 'src', 'graph.html'))
+  win.webContents.on('did-finish-load', () => {
+    win.webContents.executeJavaScript(`window.graphData = ${JSON.stringify(data)}; if(window.graphData) init(window.graphData);`)
+  })
+  return true
+})
+
+ipcMain.handle('pick-folder', async () => {
+  const result = await dialog.showOpenDialog(mainWindow, {
+    title: 'Velg noterotmappe',
+    properties: ['openDirectory'],
+  })
+  if (result.canceled || !result.filePaths.length) return null
+  return result.filePaths[0]
+})
+
 ipcMain.handle('pick-pdf', async () => {
   const result = await dialog.showOpenDialog(mainWindow, {
     title: 'Velg PDF-fil',

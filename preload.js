@@ -9,4 +9,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
   saveNoter2:  (n)      => ipcRenderer.invoke('save-noter2', n),
   openPDF:     (path)   => ipcRenderer.invoke('open-pdf', path),
   pickPDF:     ()       => ipcRenderer.invoke('pick-pdf'),
+  openGraph:   (data)   => ipcRenderer.invoke('open-graph', data),
+  pickFolder:  ()       => ipcRenderer.invoke('pick-folder'),
 })
