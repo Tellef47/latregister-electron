@@ -165,8 +165,7 @@ td.navn{font-family:'Libre Baskerville',serif;font-size:.88rem;}
   <span id="header-subtitle">laster…</span>
   <button class="btn" style="background:rgba(255,255,255,.1);color:var(--paper);border-color:rgba(255,255,255,.2);" onclick="openGraph()">⬡ Graf</button>
   <button class="btn" style="background:rgba(255,255,255,.1);color:var(--paper);border-color:rgba(255,255,255,.2);" onclick="lastNedBackup()">⬇ Backup</button>
-  <span id="user-name" style="font-size:.78rem;color:rgba(255,255,255,.6);margin-left:.5rem;"></span>
-  <button class="btn" style="background:rgba(255,255,255,.1);color:var(--paper);border-color:rgba(255,255,255,.2);" onclick="location.href='/logout'">Logg ut</button>
+  <button class="btn" style="background:rgba(255,255,255,.1);color:var(--paper);border-color:rgba(255,255,255,.2);" onclick="location.href='/logout'">Logg ut (<span id="user-name"></span>)</button>
 </header>
 
 <div class="tabs">
@@ -316,7 +315,7 @@ td.navn{font-family:'Libre Baskerville',serif;font-size:.88rem;}
           <span id="pdf-index" style="font-size:.75rem;color:#aaa;min-width:40px;text-align:center;"></span>
           <button onclick="nextPDF()" style="font-size:.75rem;padding:2px 8px;border:1px solid #555;border-radius:3px;background:#444;color:#ddd;cursor:pointer;">Neste ›</button>
         </div>
-        <webview id="pdf-viewer" style="flex:1;width:100%;" src="about:blank"></webview>
+        <iframe id="pdf-viewer" style="flex:1;width:100%;border:none;" src="about:blank"></iframe>
       </div>
     </div>
   </div>
@@ -1712,7 +1711,7 @@ function showPDF(){
     return;
   }
   const n=pdfList[pdfIndex];
-  viewer.src='file://'+n.sti;
+  viewer.src=n.sti.startsWith('http')||n.sti.startsWith('/')?n.sti:'/uploads/'+encodeURIComponent(n.sti.split(/[/\\]/).pop()||n.sti);
   title.textContent=n.tittel+' — '+(n.sti.split(/[/\\]/).pop()||n.sti);
   idx.textContent=pdfList.length>1?(pdfIndex+1)+'/'+pdfList.length:'';
 }
