@@ -1424,8 +1424,8 @@ function printSettliste(samlId){
   setTimeout(()=>w.print(),400);
 }
 function openGraph(){
-  const w=window.open('/graph','_blank','width=1200,height=800');
-  if(w){ setTimeout(()=>{ try{w.postMessage({type:'graph-data',data},'*');}catch(e){} },800); }
+  sessionStorage.setItem('graph-data', JSON.stringify(data));
+  window.open('/graph','_blank','width=1200,height=800');
 }
 function openPDF(id){
   const s=noter[id];if(!s)return;

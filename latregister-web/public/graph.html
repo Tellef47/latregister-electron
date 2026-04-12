@@ -61,11 +61,15 @@ const RAD = { lat:7, saml:12, inst:9, kilde:10 };
 
 let allNodes=[], allLinks=[], sim, svg, g, linkSel, nodeSel;
 
+// Try sessionStorage first (web), then postMessage (Electron)
 window.addEventListener('message', e => {
   if(e.data?.type==='graph-data') init(e.data.data);
 });
-// Also accept from electronAPI via preload postMessage
-if(window.graphData) init(window.graphData);
+window.addEventListener('load', () => {
+  const stored = sessionStorage.getItem('graph-data');
+  if(stored){ try{ init(JSON.parse(stored)); }catch(e){} }
+  else if(window.graphData) init(window.graphData);
+});
 
 function init(data){
   const {latar, samlingar, koblingar, instTyper} = data;

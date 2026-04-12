@@ -208,6 +208,11 @@ async function handleRequest(req, res) {
     return sendFile(res, path.join(PUBLIC_DIR, 'index.html'))
   }
 
+  // Graph
+  if (pathname === '/graph') {
+    return sendFile(res, path.join(PUBLIC_DIR, 'graph.html'))
+  }
+
   // Static files
   if (pathname.startsWith('/public/')) {
     return sendFile(res, path.join(PUBLIC_DIR, pathname.slice(8)))
