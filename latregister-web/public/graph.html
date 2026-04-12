@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+<meta charset="UTF-8">
+<title>Låtregister — Nettverksoversikt</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --ink:#2a1f14;--ink2:#5c4a34;--ink3:#9c876a;
+  --paper:#faf7f2;--paper2:#f2ede4;--paper3:#e8e0d3;
+  --accent:#7a3b1e;--accent2:#b05a2f;
+  --border:rgba(90,60,30,0.18);
+}
+html,body{height:100%;overflow:hidden;background:var(--paper);font-family:'Source Sans 3',sans-serif,system-ui;}
+#toolbar{display:flex;align-items:center;gap:.75rem;padding:.6rem 1.25rem;background:var(--ink);border-bottom:3px solid var(--accent);flex-shrink:0;}
+#toolbar h1{font-size:1rem;font-weight:700;color:var(--paper);font-family:Georgia,serif;letter-spacing:.02em;}
+.tog{display:flex;align-items:center;gap:.35rem;font-size:.78rem;color:var(--paper);opacity:.85;cursor:pointer;user-select:none;}
+.tog input{cursor:pointer;accent-color:var(--accent2);}
+#spacer{flex:1;}
+#search-box{font-size:.82rem;padding:.3rem .65rem;border:1px solid rgba(255,255,255,.2);border-radius:4px;background:rgba(255,255,255,.1);color:var(--paper);outline:none;width:180px;}
+#search-box::placeholder{color:rgba(255,255,255,.45);}
+#graph-wrap{width:100%;height:calc(100vh - 48px);position:relative;}
+svg{width:100%;height:100%;}
+.link{stroke:var(--border);stroke-width:1.2px;}
+.node circle{stroke-width:1.5px;cursor:pointer;transition:opacity .15s;}
+.node circle:hover{opacity:.75;}
+.node text{font-size:11px;fill:var(--ink);pointer-events:none;user-select:none;}
+.node.faded circle{opacity:.15;}
+.node.faded text{opacity:.15;}
+.link.faded{opacity:.05;}
+#tooltip{position:absolute;background:var(--paper);border:1px solid var(--border);border-radius:5px;padding:.45rem .75rem;font-size:.78rem;color:var(--ink);pointer-events:none;display:none;max-width:220px;box-shadow:0 2px 8px rgba(0,0,0,.12);}
+#legend{position:absolute;bottom:1rem;left:1rem;background:var(--paper2);border:1px solid var(--border);border-radius:5px;padding:.6rem .85rem;font-size:.75rem;color:var(--ink2);}
+.leg-item{display:flex;align-items:center;gap:.4rem;margin-bottom:.25rem;}
+.leg-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0;}
+</style>
+</head>
+<body>
+<div id="toolbar">
+  <h1>Nettverksoversikt</h1>
+  <label class="tog"><input type="checkbox" id="tog-lat" checked> Låtar</label>
+  <label class="tog"><input type="checkbox" id="tog-saml" checked> Samlingar</label>
+  <label class="tog"><input type="checkbox" id="tog-inst" checked> Instrument</label>
+  <label class="tog"><input type="checkbox" id="tog-kilde" checked> Kilder</label>
+  <div id="spacer"></div>
+  <input id="search-box" type="text" placeholder="Søk node…">
+</div>
+<div id="graph-wrap">
+  <svg id="svg"></svg>
+  <div id="tooltip"></div>
+  <div id="legend">
+    <div class="leg-item"><div class="leg-dot" style="background:#b05a2f;"></div> Låt</div>
+    <div class="leg-item"><div class="leg-dot" style="background:#42287a;"></div> Samling</div>
+    <div class="leg-item"><div class="leg-dot" style="background:#2a5c2a;"></div> Instrument</div>
+    <div class="leg-item"><div class="leg-dot" style="background:#1a5c6e;"></div> Kilde</div>
+  </div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+<script>
+const COL = { lat:'#b05a2f', saml:'#42287a', inst:'#2a5c2a', kilde:'#1a5c6e' };
+const RAD = { lat:7, saml:12, inst:9, kilde:10 };
+
+let allNodes=[], allLinks=[], sim, svg, g, linkSel, nodeSel;
+
+window.addEventListener('message', e => {
+  if(e.data?.type==='graph-data') init(e.data.data);
+});
+// Also accept from electronAPI via preload postMessage
+if(window.graphData) init(window.graphData);
+
+function init(data){
+  const {latar, samlingar, koblingar, instTyper} = data;
+
+  // Build nodes
+  const latNodes  = latar.map(l=>({id:'lat-'+l.id, label:l.navn, type:'lat', ref:l}));
+  const samlNodes = samlingar.filter(s=>s.visIGraf!==false).map(s=>({id:'saml-'+s.id, label:s.navn, type:'saml', ref:s}));
+
+  // Instrument nodes — only those actually used
+  const usedInst = new Set(latar.flatMap(l=>l.instrument||[]));
+  const instNodes = [...usedInst].map(i=>({id:'inst-'+i, label:i, type:'inst'}));
+
+  // Kilde nodes — only those actually used
+  const usedKilder = new Set(latar.map(l=>l.kilde||'').filter(Boolean));
+  const kildeNodes = [...usedKilder].map(k=>({id:'kilde-'+k, label:k, type:'kilde'}));
+
+  allNodes = [...latNodes, ...samlNodes, ...instNodes, ...kildeNodes];
+
+  // Links: lat ↔ saml
+  const samlLinks = koblingar.map(k=>({source:'lat-'+k.latId, target:'saml-'+k.samlId, type:'saml'}));
+  // Links: lat ↔ inst
+  const instLinks = latar.flatMap(l=>(l.instrument||[]).map(i=>({source:'lat-'+l.id, target:'inst-'+i, type:'inst'})));
+  // Links: lat ↔ kilde
+  const kildeLinks = latar.filter(l=>l.kilde).map(l=>({source:'lat-'+l.id, target:'kilde-'+l.kilde, type:'kilde'}));
+  allLinks = [...samlLinks, ...instLinks, ...kildeLinks];
+
+  buildSim();
+  ['tog-lat','tog-saml','tog-inst','tog-kilde'].forEach(id=>document.getElementById(id).addEventListener('change', rebuild));
+  document.getElementById('search-box').addEventListener('input', highlight);
+}
+
+function visibleTypes(){
+  return {
+    lat:  document.getElementById('tog-lat').checked,
+    saml: document.getElementById('tog-saml').checked,
+    inst: document.getElementById('tog-inst').checked,
+    kilde:document.getElementById('tog-kilde').checked,
+  };
+}
+
+function rebuild(){ buildSim(); }
+
+function buildSim(){
+  const vis = visibleTypes();
+  const nodes = allNodes.filter(n=>vis[n.type]).map(n=>({...n}));
+  const nodeIds = new Set(nodes.map(n=>n.id));
+  const links = allLinks.filter(l=>{
+    const st = l.type==='saml'?'saml':l.type==='kilde'?'kilde':'inst';
+    return nodeIds.has(l.source.id||l.source) && nodeIds.has(l.target.id||l.target) && vis[st];
+  }).map(l=>({...l}));
+
+  const W=document.getElementById('graph-wrap').clientWidth;
+  const H=document.getElementById('graph-wrap').clientHeight;
+
+  d3.select('#svg').selectAll('*').remove();
+  svg = d3.select('#svg');
+
+  const zoom=d3.zoom().scaleExtent([.1,4]).on('zoom',e=>g.attr('transform',e.transform));
+  svg.call(zoom);
+  g = svg.append('g');
+
+  sim = d3.forceSimulation(nodes)
+    .force('link', d3.forceLink(links).id(d=>d.id).distance(d=>d.type==='saml'?110:80).strength(.6))
+    .force('charge', d3.forceManyBody().strength(-220))
+    .force('center', d3.forceCenter(W/2, H/2))
+    .force('collide', d3.forceCollide(d=>RAD[d.type]+14));
+
+  linkSel = g.append('g').selectAll('line')
+    .data(links).join('line').attr('class','link');
+
+  nodeSel = g.append('g').selectAll('g')
+    .data(nodes).join('g')
+    .attr('class','node')
+    .call(d3.drag()
+      .on('start',(e,d)=>{if(!e.active)sim.alphaTarget(.3).restart();d.fx=d.x;d.fy=d.y;})
+      .on('drag',(e,d)=>{d.fx=e.x;d.fy=e.y;})
+      .on('end',(e,d)=>{if(!e.active)sim.alphaTarget(0);d.fx=null;d.fy=null;}))
+    .on('mouseover',(e,d)=>{
+      const tt=document.getElementById('tooltip');
+      tt.style.display='block';
+      tt.style.left=(e.offsetX+14)+'px';
+      tt.style.top=(e.offsetY-10)+'px';
+      const typeLabel={lat:'Låt',saml:'Samling',inst:'Instrument'}[d.type];
+      tt.innerHTML=`<strong>${d.label}</strong><br><span style="color:var(--ink3)">${typeLabel}</span>`;
+      // fade others
+      const linked=new Set([d.id]);
+      links.forEach(l=>{
+        const s=l.source.id||l.source, t=l.target.id||l.target;
+        if(s===d.id||t===d.id){linked.add(s);linked.add(t);}
+      });
+      nodeSel.classed('faded',n=>!linked.has(n.id));
+      linkSel.classed('faded',l=>!linked.has(l.source.id)&&!linked.has(l.target.id));
+    })
+    .on('mouseout',()=>{
+      document.getElementById('tooltip').style.display='none';
+      nodeSel.classed('faded',false);
+      linkSel.classed('faded',false);
+    });
+
+  nodeSel.append('circle')
+    .attr('r',d=>RAD[d.type])
+    .attr('fill',d=>COL[d.type])
+    .attr('stroke',d=>d3.color(COL[d.type]).darker(.8));
+
+  nodeSel.append('text')
+    .attr('dx',d=>RAD[d.type]+4)
+    .attr('dy','0.35em')
+    .text(d=>d.label.length>22?d.label.slice(0,21)+'…':d.label);
+
+  sim.on('tick',()=>{
+    linkSel.attr('x1',d=>d.source.x).attr('y1',d=>d.source.y)
+           .attr('x2',d=>d.target.x).attr('y2',d=>d.target.y);
+    nodeSel.attr('transform',d=>`translate(${d.x},${d.y})`);
+  });
+}
+
+function highlight(){
+  const q=document.getElementById('search-box').value.trim().toLowerCase();
+  if(!q){nodeSel?.classed('faded',false);linkSel?.classed('faded',false);return;}
+  nodeSel?.classed('faded',d=>!d.label.toLowerCase().includes(q));
+}
+</script>
+</body>
+</html>

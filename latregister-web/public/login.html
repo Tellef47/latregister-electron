@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Låtregister — Logg inn</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Helvetica Neue',Arial,sans-serif;background:#f2ede4;min-height:100vh;display:flex;align-items:center;justify-content:center;}
+.card{background:#faf7f2;border:1px solid rgba(90,60,30,0.2);border-radius:8px;padding:2.5rem 2rem;width:340px;max-width:95vw;}
+h1{font-family:Georgia,serif;font-size:1.4rem;color:#2a1f14;margin-bottom:.25rem;}
+p{font-size:.82rem;color:#9c876a;margin-bottom:1.75rem;font-style:italic;}
+label{display:block;font-size:.72rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#9c876a;margin-bottom:.3rem;}
+input{width:100%;padding:.5rem .75rem;font-size:.9rem;border:1px solid rgba(90,60,30,0.25);border-radius:4px;background:#fff;color:#2a1f14;margin-bottom:1rem;outline:none;font-family:inherit;}
+input:focus{border-color:#b05a2f;}
+button{width:100%;padding:.55rem;font-size:.85rem;font-weight:600;background:#7a3b1e;color:#faf7f2;border:none;border-radius:4px;cursor:pointer;letter-spacing:.04em;}
+button:hover{background:#b05a2f;}
+.error{font-size:.8rem;color:#8a2020;background:#f5e8e8;border:1px solid #d0b0b0;border-radius:4px;padding:.5rem .75rem;margin-bottom:1rem;}
+</style>
+</head>
+<body>
+<div class="card">
+  <h1>Låtregister</h1>
+  <p>Logg inn for å fortsette</p>
+  <div class="error" id="err" style="display:none;">Feil brukernavn eller passord</div>
+  <form method="POST" action="/login">
+    <label>Brukernavn</label>
+    <input type="text" name="username" autocomplete="username" required autofocus>
+    <label>Passord</label>
+    <input type="password" name="password" autocomplete="current-password" required>
+    <button type="submit">Logg inn</button>
+  </form>
+</div>
+<script>
+if(location.search.includes('error'))document.getElementById('err').style.display='';
+</script>
+</body>
+</html>

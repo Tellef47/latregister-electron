@@ -1,0 +1,1869 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Låtregister</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Source+Sans+3:wght@300;400;600&display=swap');
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --ink:#2a1f14;--ink2:#5c4a34;--ink3:#9c876a;
+  --paper:#faf7f2;--paper2:#f2ede4;--paper3:#e8e0d3;
+  --accent:#7a3b1e;--accent2:#b05a2f;
+  --border:rgba(90,60,30,0.15);--border2:rgba(90,60,30,0.28);
+  --hi:#f0e8d8;
+  --green:#2e5c2e;--green-bg:#e8f3e8;
+  --pur-bg:#ede8f5;--pur:#42287a;--pur-bd:#c5b4e8;
+}
+html,body{height:100%;overflow:hidden;}
+body{font-family:'Source Sans 3',sans-serif;background:var(--paper);color:var(--ink);display:flex;flex-direction:column;}
+header{background:var(--ink);color:var(--paper);padding:1rem 1.75rem;display:flex;align-items:baseline;gap:1rem;border-bottom:3px solid var(--accent);flex-shrink:0;}
+header h1{font-family:'Libre Baskerville',serif;font-size:1.45rem;font-weight:700;color:var(--paper);}
+header span{font-size:0.82rem;color:var(--ink3);font-style:italic;}
+.tabs{display:flex;background:var(--paper2);border-bottom:1px solid var(--border2);padding:0 1.75rem;flex-shrink:0;}
+.tab{padding:0.65rem 1.25rem;font-size:0.78rem;font-weight:600;color:var(--ink2);cursor:pointer;border-bottom:3px solid transparent;letter-spacing:0.06em;text-transform:uppercase;transition:all .12s;}
+.tab:hover{color:var(--ink);background:var(--paper3);}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent);background:var(--paper);}
+.tabpanel{display:none;flex:1;overflow:hidden;flex-direction:column;}
+.tabpanel.active{display:flex;}
+
+/* toolbar */
+.toolbar{display:flex;gap:.6rem;padding:.7rem 1.75rem;background:var(--paper);border-bottom:1px solid var(--border);flex-wrap:wrap;align-items:center;flex-shrink:0;}
+.toolbar input[type=text]{font-family:'Source Sans 3',sans-serif;font-size:.88rem;padding:.38rem .72rem;border:1px solid var(--border2);border-radius:4px;background:var(--paper);color:var(--ink);flex:1;min-width:150px;outline:none;}
+.toolbar input:focus,.toolbar select:focus{border-color:var(--accent2);}
+.toolbar select{font-family:'Source Sans 3',sans-serif;font-size:.82rem;padding:.38rem .6rem;border:1px solid var(--border2);border-radius:4px;background:var(--paper);color:var(--ink);cursor:pointer;outline:none;}
+.count{font-size:.78rem;color:var(--ink3);margin-left:auto;font-style:italic;}
+.btn{font-family:'Source Sans 3',sans-serif;font-size:.78rem;font-weight:600;padding:.38rem .85rem;border:1px solid var(--border2);border-radius:4px;background:var(--paper2);color:var(--ink2);cursor:pointer;letter-spacing:.04em;text-transform:uppercase;transition:all .12s;}
+.btn:hover{background:var(--paper3);color:var(--ink);}
+.btn.primary{background:var(--accent);color:var(--paper);border-color:var(--accent);}
+.btn.primary:hover{background:var(--accent2);}
+
+/* lat table */
+.lat-scroll{overflow-y:auto;flex:1;}
+table{width:100%;border-collapse:collapse;font-size:.85rem;}
+thead th{font-family:'Source Sans 3',sans-serif;font-weight:600;font-size:.7rem;letter-spacing:.06em;text-transform:uppercase;color:var(--ink3);padding:.42rem .68rem;text-align:left;border-bottom:1px solid var(--border2);background:var(--paper2);position:sticky;top:0;z-index:2;}
+thead th.sortable{cursor:pointer;user-select:none;}
+thead th.sortable:hover{color:var(--ink);}
+thead th.sorted{color:var(--accent);}
+tbody tr{border-bottom:1px solid var(--border);transition:background .07s;}
+tbody tr:hover{background:var(--hi);}
+tbody td{padding:.42rem .68rem;vertical-align:middle;}
+td.navn{font-family:'Libre Baskerville',serif;font-size:.88rem;}
+.type-badge{display:inline-block;font-size:.68rem;font-weight:600;padding:2px 6px;border-radius:3px;letter-spacing:.04em;background:var(--paper3);color:var(--ink2);border:1px solid var(--border);white-space:nowrap;}
+.kilde-text{font-size:.79rem;color:var(--ink2);font-style:italic;}
+
+.saml-tag{display:inline-flex;align-items:center;gap:3px;font-size:.68rem;padding:2px 5px;border-radius:3px;background:var(--pur-bg);color:var(--pur);border:1px solid var(--pur-bd);margin:1px;white-space:nowrap;}
+.stag-rm{cursor:pointer;opacity:.45;font-size:.7rem;line-height:1;}
+.stag-rm:hover{opacity:1;}
+.saml-inline-select{font-family:'Source Sans 3',sans-serif;font-size:.7rem;padding:1px 4px;border:1px dashed var(--pur-bd);border-radius:3px;background:var(--paper);color:var(--pur);cursor:pointer;outline:none;margin:1px;}
+.saml-inline-select:focus{border-color:var(--pur);}
+.edit-btn{font-size:.7rem;padding:2px 6px;border:1px solid var(--border2);border-radius:3px;background:none;color:var(--ink3);cursor:pointer;font-family:'Source Sans 3',sans-serif;transition:all .1s;white-space:nowrap;}
+.edit-btn:hover{color:var(--accent);border-color:var(--accent2);}
+.noter-cell{display:flex;align-items:center;gap:.35rem;}
+.noter-link{font-size:.79rem;color:var(--accent2);text-decoration:none;max-width:190px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer;}
+.noter-link:hover{text-decoration:underline;}
+.noter-input{font-family:'Source Sans 3',sans-serif;font-size:.79rem;padding:2px 6px;border:1px solid var(--accent2);border-radius:3px;background:var(--paper);color:var(--ink);flex:1;min-width:120px;outline:none;}
+.drop-target{display:inline-flex;align-items:center;justify-content:center;width:24px;height:20px;border:1px dashed var(--border2);border-radius:3px;cursor:pointer;font-size:10px;color:var(--ink3);transition:all .12s;flex-shrink:0;}
+.drop-target:hover,.drop-target.over{border-color:var(--accent2);background:var(--hi);color:var(--accent);}
+.save-btn{font-size:.7rem;padding:2px 5px;border:1px solid var(--green);border-radius:3px;background:var(--green-bg);color:var(--green);cursor:pointer;font-family:'Source Sans 3',sans-serif;}
+.cancel-btn{font-size:.7rem;padding:2px 5px;border:1px solid var(--border2);border-radius:3px;background:none;color:var(--ink3);cursor:pointer;font-family:'Source Sans 3',sans-serif;}
+.empty{padding:2.5rem;text-align:center;color:var(--ink3);font-style:italic;}
+.inst-tag{display:inline-flex;align-items:center;gap:3px;font-size:.68rem;padding:2px 6px;border-radius:3px;background:#e8f0e8;color:#2a4a2a;border:1px solid #b8d0b8;margin:1px;white-space:nowrap;}
+.itag-rm{cursor:pointer;opacity:.45;font-size:.7rem;line-height:1;}
+.itag-rm:hover{opacity:1;}
+.inst-inline-select{font-family:'Source Sans 3',sans-serif;font-size:.7rem;padding:1px 4px;border:1px dashed #b8d0b8;border-radius:3px;background:var(--paper);color:#2a4a2a;cursor:pointer;outline:none;margin:1px;}
+.inst-inline-select:focus{border-color:#2a4a2a;}
+.inst-tag .rm{cursor:pointer;opacity:.5;font-size:.8rem;line-height:1;margin-left:1px;}
+.inst-tag .rm:hover{opacity:1;}
+.inst-opt{font-size:.75rem;padding:2px 8px;border-radius:3px;border:1px solid var(--border2);background:var(--paper2);color:var(--ink2);cursor:pointer;transition:all .1s;margin:2px;}
+.inst-opt:hover{background:var(--paper3);}
+.inst-opt.selected{background:#2a4a2a;color:#e8f0e8;border-color:#2a4a2a;}
+.inst-add-row{display:flex;gap:.35rem;margin-top:.5rem;}
+.inst-add-row input{font-family:'Source Sans 3',sans-serif;font-size:.8rem;padding:3px 7px;border:1px solid var(--border2);border-radius:3px;background:var(--paper);color:var(--ink);flex:1;outline:none;}
+.inst-add-row input:focus{border-color:var(--accent2);}
+.inst-add-row button{font-size:.75rem;padding:3px 8px;border:1px solid var(--border2);border-radius:3px;background:var(--paper2);color:var(--ink2);cursor:pointer;font-family:'Source Sans 3',sans-serif;}
+.inst-add-row button:hover{background:var(--paper3);}
+
+/* split pane */
+.split{display:flex;flex:1;overflow:hidden;}
+.saml-list{width:250px;min-width:160px;border-right:1px solid var(--border2);display:flex;flex-direction:column;flex-shrink:0;background:var(--paper2);}
+.saml-list-toolbar{padding:.6rem .85rem;border-bottom:1px solid var(--border);display:flex;gap:.4rem;align-items:center;}
+.saml-list-toolbar input{font-family:'Source Sans 3',sans-serif;font-size:.82rem;padding:.32rem .55rem;border:1px solid var(--border2);border-radius:4px;background:var(--paper);color:var(--ink);flex:1;outline:none;}
+.saml-list-toolbar input:focus{border-color:var(--accent2);}
+.saml-items{overflow-y:auto;flex:1;}
+.saml-item{padding:.58rem .85rem;cursor:pointer;border-bottom:1px solid var(--border);transition:background .08s;}
+.saml-item:hover{background:var(--hi);}
+.saml-item.active{background:var(--accent);color:var(--paper);}
+.saml-item.active .si-navn{color:var(--paper);}
+.saml-item.active .si-meta{color:rgba(255,255,255,.6);}
+.si-navn{font-family:'Libre Baskerville',serif;font-size:.86rem;}
+.si-meta{font-size:.72rem;color:var(--ink3);margin-top:2px;}
+.saml-add-btn{padding:.58rem .85rem;border-top:1px solid var(--border2);font-size:.75rem;font-weight:600;color:var(--accent);cursor:pointer;letter-spacing:.04em;text-transform:uppercase;background:var(--paper2);transition:background .1s;flex-shrink:0;}
+.saml-add-btn:hover{background:var(--paper3);}
+
+.saml-detail{flex:1;display:flex;flex-direction:column;overflow:hidden;background:var(--paper);}
+.saml-detail-header{padding:.9rem 1.4rem;border-bottom:1px solid var(--border);background:var(--paper2);display:flex;align-items:baseline;gap:.85rem;flex-shrink:0;}
+.saml-detail-header h2{font-family:'Libre Baskerville',serif;font-size:1.1rem;font-weight:700;}
+.saml-detail-header .meta{font-size:.8rem;color:var(--ink3);font-style:italic;}
+.saml-detail-header .spacer{flex:1;}
+.saml-detail-body{flex:1;overflow-y:auto;padding:1.1rem 1.4rem;}
+.saml-empty-state{display:flex;align-items:center;justify-content:center;height:100%;color:var(--ink3);font-style:italic;}
+.sec-title{font-size:.7rem;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--ink3);margin-bottom:.65rem;}
+.lat-in-saml{display:flex;align-items:center;gap:.5rem;padding:.4rem 0;border-bottom:1px solid var(--border);}
+.lat-in-saml:last-child{border-bottom:none;}
+.li-navn{font-family:'Libre Baskerville',serif;font-size:.86rem;flex:1;}
+.li-type{font-size:.68rem;color:var(--ink3);}
+.remove-btn{font-size:.68rem;padding:1px 6px;border:1px solid var(--border2);border-radius:3px;background:none;color:var(--ink3);cursor:pointer;font-family:'Source Sans 3',sans-serif;opacity:.6;transition:all .1s;}
+.remove-btn:hover{opacity:1;color:var(--accent);border-color:var(--accent2);}
+.add-lat-area{margin-top:1.3rem;}
+.add-lat-search{font-family:'Source Sans 3',sans-serif;font-size:.84rem;padding:.38rem .65rem;border:1px solid var(--border2);border-radius:4px;background:var(--paper);color:var(--ink);width:100%;outline:none;margin-bottom:.45rem;}
+.add-lat-search:focus{border-color:var(--accent2);}
+.add-lat-results{max-height:175px;overflow-y:auto;border:1px solid var(--border);border-radius:4px;background:var(--paper);}
+.alr{padding:.38rem .65rem;font-size:.82rem;cursor:pointer;display:flex;align-items:center;gap:.45rem;border-bottom:1px solid var(--border);}
+.alr:last-child{border-bottom:none;}
+.alr:hover{background:var(--hi);}
+.alr-create{border-top:1px dashed var(--border2);}
+.alr-in{opacity:.55;cursor:default;}
+.alr-type{font-size:.68rem;color:var(--ink3);}
+
+/* modal */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(30,18,8,.52);z-index:200;align-items:center;justify-content:center;}
+.modal-bg.open{display:flex;}
+.modal{background:var(--paper);border-radius:6px;border:1px solid var(--border2);width:430px;max-width:95vw;padding:1.4rem;}
+.modal h2{font-family:'Libre Baskerville',serif;font-size:1.05rem;margin-bottom:1rem;border-bottom:1px solid var(--border);padding-bottom:.6rem;}
+.form-row{margin-bottom:.8rem;}
+.form-row label{display:block;font-size:.72rem;font-weight:600;color:var(--ink3);letter-spacing:.05em;text-transform:uppercase;margin-bottom:.28rem;}
+.form-row input,.form-row select{width:100%;font-family:'Source Sans 3',sans-serif;font-size:.88rem;padding:.42rem .68rem;border:1px solid var(--border2);border-radius:4px;background:var(--paper);color:var(--ink);outline:none;}
+.form-row input:focus,.form-row select:focus{border-color:var(--accent2);}
+.modal-drop{border:2px dashed var(--border2);border-radius:5px;padding:.65rem 1rem;text-align:center;font-size:.78rem;color:var(--ink3);cursor:pointer;transition:all .12s;margin-top:.35rem;}
+.modal-drop:hover,.modal-drop.over{border-color:var(--accent2);background:var(--hi);color:var(--accent);}
+.modal-drop.has-file{border-color:var(--green);background:var(--green-bg);color:var(--green);}
+.modal-actions{display:flex;justify-content:flex-end;gap:.45rem;margin-top:1.1rem;padding-top:.8rem;border-top:1px solid var(--border);}
+.status-bar{position:fixed;bottom:0;left:0;right:0;padding:.32rem 2rem;background:var(--green-bg);border-top:1px solid #b8dab8;color:var(--green);font-size:.76rem;font-weight:600;text-align:center;transform:translateY(100%);transition:transform .18s;z-index:50;}
+.status-bar.show{transform:translateY(0);}
+
+.lat-navn-link{cursor:pointer;color:var(--ink);text-decoration:none;border-bottom:1px solid transparent;transition:border-color .1s;}
+.notat-dot{font-size:.75rem;color:var(--accent2);margin-left:5px;opacity:0.7;}
+.lat-navn-link:hover{border-bottom-color:var(--accent2);color:var(--accent);}
+.notat-row{display:flex;align-items:flex-start;gap:.5rem;padding:.5rem 0;border-bottom:1px solid var(--border);}
+.notat-row:last-child{border-bottom:none;}
+.notat-tittel{font-size:.88rem;font-weight:600;color:var(--ink);margin-bottom:2px;}
+.notat-sti{font-size:.78rem;color:var(--accent2);cursor:pointer;text-decoration:none;}
+.notat-sti:hover{text-decoration:underline;}
+.notat-komm{font-size:.76rem;color:var(--ink3);font-style:italic;margin-top:2px;}
+
+.drag-handle{cursor:grab;color:var(--ink3);font-size:1rem;margin-right:.35rem;user-select:none;flex-shrink:0;}
+.drag-handle:active{cursor:grabbing;}
+.lat-in-saml.drag-over{border-top:2px solid var(--accent2);background:var(--hi);}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Låtregister</h1>
+  <span id="header-subtitle">laster…</span>
+  <button class="btn" style="background:rgba(255,255,255,.1);color:var(--paper);border-color:rgba(255,255,255,.2);" onclick="openGraph()">⬡ Graf</button>
+  <button class="btn" style="background:rgba(255,255,255,.1);color:var(--paper);border-color:rgba(255,255,255,.2);" onclick="lastNedBackup()">⬇ Backup</button>
+  <span id="user-name" style="font-size:.78rem;color:rgba(255,255,255,.6);margin-left:.5rem;"></span>
+  <button class="btn" style="background:rgba(255,255,255,.1);color:var(--paper);border-color:rgba(255,255,255,.2);" onclick="location.href='/logout'">Logg ut</button>
+</header>
+
+<div class="tabs">
+  <div class="tab active" onclick="showTab('latar')">Låter</div>
+  <div class="tab" onclick="showTab('samlingar')">Samlinger</div>
+  <div class="tab" onclick="showTab('kilder')">Kilder</div>
+  <div class="tab" onclick="showTab('innstillinger')">Innstillinger</div>
+</div>
+
+<!-- LÅTAR -->
+<div id="tab-latar" class="tabpanel active">
+  <div class="toolbar">
+    <input type="text" id="search-lat" placeholder="Søk i låter…" oninput="renderLatar()">
+    <select id="filter-type" onchange="renderLatar()"><option value="">Alle typer</option></select>
+    <select id="filter-saml" onchange="renderLatar()"><option value="">Alle samlinger</option></select>
+    <select id="filter-kilde" onchange="renderLatar()"><option value="">Alle kilder</option></select>
+    <button class="btn primary" onclick="openNyLatModal()">+ Ny låt</button>
+    <span class="count" id="lat-count"></span>
+  </div>
+  <div class="lat-scroll">
+    <table>
+      <thead><tr>
+        <th class="sortable" onclick="sortLatar('namn')" id="th-namn">Navn</th>
+        <th class="sortable" onclick="sortLatar('type')" id="th-type">Type</th>
+        <th>Kilde</th>
+        <th>Samlinger</th>
+        <th>Instrument</th>
+        <th style="min-width:175px;">Noter</th>
+      </tr></thead>
+      <tbody id="lat-tbody"></tbody>
+    </table>
+    <div id="lat-empty" class="empty" style="display:none;">Ingen låter funnet.</div>
+  </div>
+</div>
+
+<!-- SAMLINGAR -->
+<div id="tab-samlingar" class="tabpanel">
+  <div class="split">
+    <div class="saml-list">
+      <div class="saml-list-toolbar">
+        <input type="text" id="search-saml" placeholder="Søk…" oninput="renderSamlList()">
+      </div>
+      <div class="saml-items" id="saml-items"></div>
+      <div class="saml-add-btn" onclick="openNySamlModal()">+ Ny samling</div>
+    </div>
+    <div class="saml-detail" id="saml-detail">
+      <div class="saml-empty-state">Velg en samling</div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: låt -->
+<div class="modal-bg" id="modal-lat">
+  <div class="modal">
+    <h2 id="modal-lat-title">Ny låt</h2>
+    <div class="form-row"><label>Navn</label><input type="text" id="ml-namn" placeholder="Låtnamn"></div>
+    <div class="form-row"><label>Type</label><select id="ml-type"><option value="">— vel type —</option></select></div>
+    <div class="form-row"><label>Kjelde</label><input type="text" id="ml-kilde" placeholder="Kjelde / spelemenn"></div>
+    <div class="form-row">
+      <label>Instrument</label>
+      <div id="ml-inst-tags" style="display:flex;flex-wrap:wrap;gap:3px;min-height:22px;margin-bottom:.4rem;"></div>
+      <div id="ml-inst-opts" style="display:flex;flex-wrap:wrap;"></div>
+      <div class="inst-add-row">
+        <input type="text" id="ml-inst-new" placeholder="Legg til instrument…" onkeydown="if(event.key==='Enter'){event.preventDefault();addInstOption();}">
+        <button onclick="addInstOption()">+ Legg til</button>
+      </div>
+    </div>
+    <div class="form-row">
+      <label>Notar (PDF)</label>
+      <div style="display:flex;gap:.4rem;"><input type="text" id="ml-noter" placeholder="Filsti…" style="flex:1;"><button class="btn" onclick="pickPDFForModal()" style="flex-shrink:0;white-space:nowrap;">Velg fil…</button></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal('modal-lat')">Avbryt</button>
+      <button class="btn primary" onclick="saveLatModal()">Lagre</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: samling -->
+<div class="modal-bg" id="modal-saml">
+  <div class="modal">
+    <h2 id="modal-saml-title">Ny samling</h2>
+    <div class="form-row"><label>Navn</label><input type="text" id="ms-namn" placeholder="Samlingsnavnet"></div>
+    <div class="form-row"><label>Type</label><input type="text" id="ms-type" placeholder="t.d. Album, Hefte…"></div>
+    <div class="form-row"><label>År</label><input type="text" id="ms-year" placeholder="t.d. 2024"></div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal('modal-saml')">Avbryt</button>
+      <button class="btn primary" onclick="saveSamlModal()">Lagre</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- Modal: låtside -->
+<div class="modal-bg" id="modal-latside" onclick="closeLatsideIfBg(event)">
+  <div id="latside-panel" style="background:var(--paper);border-radius:8px;border:1px solid var(--border2);width:92vw;max-width:1300px;height:88vh;display:flex;flex-direction:column;overflow:hidden;resize:both;">
+    <!-- header -->
+    <div style="display:flex;align-items:center;gap:.75rem;padding:.85rem 1.25rem;border-bottom:1px solid var(--border);flex-shrink:0;background:var(--paper2);">
+      <h2 id="mls-tittel" style="font-family:'Libre Baskerville',serif;font-size:1.1rem;font-weight:700;flex:1;margin:0;"></h2>
+      <div id="mls-type" style="display:inline-flex;align-items:center;gap:.4rem;"></div>
+      <button class="btn" style="color:var(--accent);border-color:var(--accent2);" onclick="slettLat(currentLatSideId)">Slett låt</button>
+      <button class="btn" onclick="closeModal('modal-latside')">Lukk</button>
+    </div>
+    <!-- body: left metadata + right PDF -->
+    <div style="display:flex;flex:1;overflow:hidden;">
+      <!-- left column -->
+      <div id="latside-left" style="width:320px;min-width:220px;flex-shrink:0;overflow-y:auto;padding:1rem 1.1rem;border-right:1px solid var(--border);display:flex;flex-direction:column;gap:1rem;">
+        <div>
+          <div class="sec-title" style="margin-bottom:.3rem;">Land</div>
+          <div id="mls-land" style="font-size:.86rem;"></div>
+        </div>
+        <div>
+          <div class="sec-title" style="margin-bottom:.3rem;">Kilde</div>
+          <div id="mls-kilde" style="font-size:.86rem;"></div>
+        </div>
+        <div>
+          <div class="sec-title" style="margin-bottom:.3rem;">Instrument</div>
+          <div id="mls-inst" style="font-size:.86rem;"></div>
+        </div>
+        <div>
+          <div class="sec-title" style="margin-bottom:.3rem;">Samlinger</div>
+          <div id="mls-samlingar"></div>
+        </div>
+        <div style="flex:1;">
+          <div class="sec-title" style="margin-bottom:.5rem;">Noter</div>
+          <div id="mls-noter-list" style="margin-bottom:.75rem;"></div>
+          <div style="border:1px solid var(--border2);border-radius:5px;padding:.75rem;background:var(--paper2);">
+            <div class="sec-title" style="margin-bottom:.45rem;">Legg til notat</div>
+            <div class="form-row" style="margin-bottom:.4rem;"><label>Tittel</label><input type="text" id="mls-new-tittel" placeholder="t.d. Første sats…"></div>
+            <div class="form-row" style="margin-bottom:.4rem;"><label>Filsti (PDF)</label>
+              <div style="display:flex;gap:.35rem;">
+                <input type="text" id="mls-new-sti" placeholder="/sti/til/fil.pdf" style="flex:1;">
+                <button class="btn" onclick="pickPDFForNotat()" style="flex-shrink:0;white-space:nowrap;padding:.3rem .6rem;">Velg…</button>
+              </div>
+            </div>
+            <div class="form-row" style="margin-bottom:.6rem;"><label>Kommentar</label><input type="text" id="mls-new-komm" placeholder="Valgfri merknad"></div>
+            <button class="btn primary" style="width:100%;" onclick="addNotatToLat()">+ Legg til notat</button>
+          </div>
+        </div>
+      </div>
+      <!-- right: PDF viewer -->
+      <div style="flex:1;display:flex;flex-direction:column;overflow:hidden;background:#444;">
+        <div id="pdf-toolbar" style="display:flex;align-items:center;gap:.5rem;padding:.4rem .75rem;background:#333;flex-shrink:0;">
+          <button onclick="toggleLatsideLeft()" title="Vis/skjul detaljer" style="font-size:.75rem;padding:2px 8px;border:1px solid #555;border-radius:3px;background:#444;color:#ddd;cursor:pointer;">☰</button>
+          <span id="pdf-title" style="font-size:.78rem;color:#ccc;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">Ingen PDF valgt</span>
+          <button onclick="prevPDF()" style="font-size:.75rem;padding:2px 8px;border:1px solid #555;border-radius:3px;background:#444;color:#ddd;cursor:pointer;">‹ Forrige</button>
+          <span id="pdf-index" style="font-size:.75rem;color:#aaa;min-width:40px;text-align:center;"></span>
+          <button onclick="nextPDF()" style="font-size:.75rem;padding:2px 8px;border:1px solid #555;border-radius:3px;background:#444;color:#ddd;cursor:pointer;">Neste ›</button>
+        </div>
+        <webview id="pdf-viewer" style="flex:1;width:100%;" src="about:blank"></webview>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- Modal: låt -->
+<div class="modal-bg" id="modal-lat">
+  <div class="modal">
+    <h2 id="modal-lat-title">Ny låt</h2>
+    <div class="form-row"><label>Navn</label><input type="text" id="ml-namn" placeholder="Låtnamn"></div>
+    <div class="form-row"><label>Type</label><select id="ml-type"><option value="">— vel type —</option></select></div>
+    <div class="form-row"><label>Kjelde</label><input type="text" id="ml-kilde" placeholder="Kjelde / spelemenn"></div>
+    <div class="form-row">
+      <label>Instrument</label>
+      <div id="ml-inst-tags" style="display:flex;flex-wrap:wrap;gap:3px;min-height:22px;margin-bottom:.4rem;"></div>
+      <div id="ml-inst-opts" style="display:flex;flex-wrap:wrap;"></div>
+      <div class="inst-add-row">
+        <input type="text" id="ml-inst-new" placeholder="Legg til instrument…" onkeydown="if(event.key==='Enter'){event.preventDefault();addInstOption();}">
+        <button onclick="addInstOption()">+ Legg til</button>
+      </div>
+    </div>
+    <div class="form-row">
+      <label>Notar (PDF)</label>
+      <div style="display:flex;gap:.4rem;"><input type="text" id="ml-noter" placeholder="Filsti…" style="flex:1;"><button class="btn" onclick="pickPDFForModal()" style="flex-shrink:0;white-space:nowrap;">Velg fil…</button></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal('modal-lat')">Avbryt</button>
+      <button class="btn primary" onclick="saveLatModal()">Lagre</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: samling -->
+<div class="modal-bg" id="modal-saml">
+  <div class="modal">
+    <h2 id="modal-saml-title">Ny samling</h2>
+    <div class="form-row"><label>Navn</label><input type="text" id="ms-namn" placeholder="Samlingsnavnet"></div>
+    <div class="form-row"><label>Type</label><input type="text" id="ms-type" placeholder="t.d. Album, Hefte…"></div>
+    <div class="form-row"><label>År</label><input type="text" id="ms-year" placeholder="t.d. 2024"></div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal('modal-saml')">Avbryt</button>
+      <button class="btn primary" onclick="saveSamlModal()">Lagre</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- Modal: låtside -->
+<div class="modal-bg" id="modal-latside">
+  <div class="modal" style="width:560px;max-height:85vh;display:flex;flex-direction:column;">
+    <div style="display:flex;align-items:baseline;gap:.75rem;margin-bottom:1rem;border-bottom:1px solid var(--border);padding-bottom:.75rem;">
+      <h2 id="mls-tittel" style="margin:0;border:none;padding:0;flex:1;"></h2>
+      <button class="btn" onclick="closeModal('modal-latside')" style="flex-shrink:0;">Lukk</button>
+    </div>
+    <div style="overflow-y:auto;flex:1;">
+      <div style="display:flex;gap:1.5rem;flex-wrap:wrap;margin-bottom:1.25rem;">
+        <div><div class="sec-title" style="margin-bottom:.35rem;">Type</div><span id="mls-type" style="font-size:.88rem;"></span></div>
+        <div><div class="sec-title" style="margin-bottom:.35rem;">Kilde</div><span id="mls-kilde" style="font-size:.88rem;font-style:italic;color:var(--ink2);"></span></div>
+        <div><div class="sec-title" style="margin-bottom:.35rem;">Instrument</div><span id="mls-inst" style="font-size:.88rem;"></span></div>
+      </div>
+
+      <div style="margin-bottom:1.25rem;">
+        <div class="sec-title" style="margin-bottom:.5rem;">Samlinger</div>
+        <div id="mls-samlingar"></div>
+      </div>
+
+      <div>
+        <div class="sec-title" style="margin-bottom:.5rem;">Noter</div>
+        <div id="mls-noter-list" style="margin-bottom:.75rem;"></div>
+        <div style="border:1px solid var(--border2);border-radius:5px;padding:.85rem;background:var(--paper2);">
+          <div style="font-size:.72rem;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--ink3);margin-bottom:.5rem;">Legg til notat</div>
+          <div class="form-row" style="margin-bottom:.5rem;"><label>Tittel</label><input type="text" id="mls-new-tittel" placeholder="t.d. Første sats, treblokk…"></div>
+          <div class="form-row" style="margin-bottom:.5rem;"><label>Filsti (PDF)</label><div style="display:flex;gap:.4rem;"><input type="text" id="mls-new-sti" placeholder="/sti/til/fil.pdf" style="flex:1;"><button class="btn" onclick="pickPDFForNotat()" style="flex-shrink:0;white-space:nowrap;">Velg fil…</button></div></div>
+          <div class="form-row" style="margin-bottom:.75rem;"><label>Kommentar</label><input type="text" id="mls-new-komm" placeholder="Valgfri merknad"></div>
+          <button class="btn primary" onclick="addNotatToLat()">+ Legg til notat</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- KILDER -->
+<div id="tab-kilder" class="tabpanel">
+  <div class="split">
+    <div class="saml-list">
+      <div class="saml-list-toolbar">
+        <input type="text" id="search-kilde" placeholder="Søk…" oninput="renderKildeList()">
+      </div>
+      <div class="saml-items" id="kilde-items"></div>
+      <div class="saml-add-btn" onclick="addNyKilde()">+ Ny kilde</div>
+    </div>
+    <div class="saml-detail" id="kilde-detail">
+      <div class="saml-empty-state">Velg en kilde</div>
+    </div>
+  </div>
+</div>
+
+<!-- INNSTILLINGER -->
+<div id="tab-innstillinger" class="tabpanel">
+  <div style="max-width:600px;padding:2rem 1.75rem;">
+    <div style="font-family:'Libre Baskerville',serif;font-size:1.1rem;font-weight:700;margin-bottom:1.5rem;color:var(--ink);">Innstillinger</div>
+
+    <div style="border:1px solid var(--border2);border-radius:6px;padding:1.25rem;background:var(--paper2);margin-bottom:1.25rem;">
+      <div class="sec-title" style="margin-bottom:.75rem;">Relokalisere noterot</div>
+      <p style="font-size:.85rem;color:var(--ink2);margin-bottom:1rem;line-height:1.6;">
+        Hvis du har flyttet eller omdøpt mappen med PDF-notene, kan du erstatte den gamle rotmappen med den nye i alle notestier.
+      </p>
+      <div class="form-row" style="margin-bottom:.75rem;">
+        <label>Gammel rotmappe</label>
+        <div style="display:flex;gap:.4rem;">
+          <input type="text" id="relo-gammel" placeholder="/gammel/sti/til/noter/" style="flex:1;">
+          <button class="btn" onclick="autoDetektGammelRot()" style="white-space:nowrap;">Auto-detect</button>
+        </div>
+      </div>
+      <div class="form-row" style="margin-bottom:1rem;">
+        <label>Ny rotmappe</label>
+        <div style="display:flex;gap:.4rem;">
+          <input type="text" id="relo-ny" placeholder="/ny/sti/til/noter/" style="flex:1;">
+          <button class="btn" onclick="pickReloMappe()" style="white-space:nowrap;">Velg mappe…</button>
+        </div>
+      </div>
+      <button class="btn primary" onclick="previewRelo()">Forhåndsvis endringer</button>
+    </div>
+
+    <div id="relo-preview" style="display:none;border:1px solid var(--border2);border-radius:6px;padding:1.25rem;background:var(--paper);">
+      <div class="sec-title" style="margin-bottom:.75rem;">Forhåndsvisning</div>
+      <div id="relo-list" style="font-size:.82rem;margin-bottom:1rem;max-height:300px;overflow-y:auto;"></div>
+      <div style="display:flex;gap:.5rem;">
+        <button class="btn primary" onclick="utforRelo()">Utfør oppdatering</button>
+        <button class="btn" onclick="document.getElementById('relo-preview').style.display='none'">Avbryt</button>
+      </div>
+    </div>
+
+    <div style="border:1px solid var(--border2);border-radius:6px;padding:1.25rem;background:var(--paper2);">
+      <div class="sec-title" style="margin-bottom:.75rem;">Brukere</div>
+      <div id="users-list" style="margin-bottom:1rem;font-size:.84rem;"></div>
+      <div style="border-top:1px solid var(--border);padding-top:.75rem;margin-top:.5rem;">
+        <div class="sec-title" style="margin-bottom:.5rem;">Legg til bruker</div>
+        <div class="form-row" style="margin-bottom:.4rem;"><label>Brukernavn</label><input type="text" id="new-uname" placeholder="brukernavn"></div>
+        <div class="form-row" style="margin-bottom:.4rem;"><label>Navn</label><input type="text" id="new-name" placeholder="Fornavn Etternavn"></div>
+        <div class="form-row" style="margin-bottom:.65rem;"><label>Passord</label><input type="password" id="new-pass" placeholder="Passord"></div>
+        <button class="btn primary" onclick="addUser()">+ Legg til bruker</button>
+      </div>
+      <div style="border-top:1px solid var(--border);padding-top:.75rem;margin-top:.75rem;">
+        <div class="sec-title" style="margin-bottom:.5rem;">Endre ditt passord</div>
+        <div class="form-row" style="margin-bottom:.4rem;"><label>Nåværende passord</label><input type="password" id="old-pass" placeholder=""></div>
+        <div class="form-row" style="margin-bottom:.65rem;"><label>Nytt passord</label><input type="password" id="new-pass2" placeholder=""></div>
+        <button class="btn primary" onclick="changePassword()">Endre passord</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: kopier samling -->
+<div class="modal-bg" id="modal-kopier-saml">
+  <div class="modal" style="width:420px;">
+    <h2>Kopier samling</h2>
+    <p id="kopier-saml-info" style="font-size:.85rem;color:var(--ink2);margin-bottom:1rem;"></p>
+    <div style="display:flex;flex-direction:column;gap:.75rem;">
+      <div style="border:1px solid var(--border2);border-radius:5px;padding:.85rem;background:var(--paper2);">
+        <div class="sec-title" style="margin-bottom:.5rem;">Kopier til ny samling</div>
+        <div class="form-row" style="margin-bottom:.5rem;"><label>Navn på ny samling</label><input type="text" id="kopier-ny-navn" placeholder="Samlingsnavnet…"></div>
+        <button class="btn primary" style="width:100%;" onclick="kopierTilNy()">Opprett og kopier</button>
+      </div>
+      <div style="border:1px solid var(--border2);border-radius:5px;padding:.85rem;background:var(--paper2);">
+        <div class="sec-title" style="margin-bottom:.5rem;">Kopier til eksisterende samling</div>
+        <div class="form-row" style="margin-bottom:.5rem;"><label>Velg samling</label>
+          <select id="kopier-eks-saml" style="width:100%;font-family:inherit;font-size:.88rem;padding:.42rem .68rem;border:1px solid var(--border2);border-radius:4px;background:var(--paper);color:var(--ink);outline:none;">
+            <option value="">— velg samling —</option>
+          </select>
+        </div>
+        <button class="btn primary" style="width:100%;" onclick="kopierTilEks()">Kopier til valgt samling</button>
+      </div>
+    </div>
+    <div class="modal-actions" style="margin-top:1rem;">
+      <button class="btn" onclick="closeModal('modal-kopier-saml')">Avbryt</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: saml kolonner -->
+<div class="modal-bg" id="modal-saml-kolonner">
+  <div class="modal" style="width:360px;">
+    <h2>Velg kolonner</h2>
+    <p style="font-size:.84rem;color:var(--ink2);margin-bottom:1rem;">Velg hvilke felt som vises i samlingsvisningen og tas med ved utskrift.</p>
+    <div id="kolonner-checkboxes" style="display:flex;flex-direction:column;gap:.5rem;margin-bottom:1rem;"></div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal('modal-saml-kolonner')">Lukk</button>
+    </div>
+  </div>
+</div>
+<div class="status-bar" id="status-bar"></div>
+
+<script>
+const DEFAULT_DATA={"latar":[{"id":1,"navn":"Älgen klättrar","type":"Vals","kilde":""},{"id":2,"navn":"Bånsull (fra Åmli)","type":"Tone","kilde":""},{"id":3,"navn":"Bestelanden","type":"Ulikeunderelt","kilde":""},{"id":4,"navn":"Bom-bomleiken","type":"Springar","kilde":""},{"id":5,"navn":"Bonde etter Håkon Asheim","type":"Likeunderdelt","kilde":""},{"id":6,"navn":"Brooklyn Bar","type":"Ril","kilde":""},{"id":7,"navn":"Bruremasrsj fra Estland","type":"Marsj","kilde":""},{"id":8,"navn":"Da far sku te by'n","type":"Visetone","kilde":""},{"id":9,"navn":"Dei frearlause menn","type":"Tone","kilde":""},{"id":10,"navn":"Den endelause","type":"Springar","kilde":""},{"id":11,"navn":"Den gamle Sordølen","type":"Likeunderdelt","kilde":""},{"id":12,"navn":"Den kaldsteikte","type":"Likeunderdelt","kilde":""},{"id":13,"navn":"Direktørvalsen","type":"Vals","kilde":""},{"id":14,"navn":"E du galen gut","type":"Visetone","kilde":""},{"id":15,"navn":"Ein etter Neri Neset","type":"Ulikeunderelt","kilde":""},{"id":16,"navn":"En etter Pål Skogum","type":"","kilde":""},{"id":17,"navn":"En liten koselig en","type":"Vals","kilde":""},{"id":18,"navn":"Englis","type":"Ulikeunderelt","kilde":""},{"id":19,"navn":"Espelandsrilen","type":"Ril","kilde":""},{"id":20,"navn":"etc","type":"Reinlender","kilde":""},{"id":21,"navn":"Fanteladda","type":"","kilde":""},{"id":22,"navn":"Fanten","type":"Likeunderdelt","kilde":""},{"id":23,"navn":"Filleværn","type":"Likeunderdelt","kilde":""},{"id":24,"navn":"Fjellrilen","type":"Ril","kilde":""},{"id":25,"navn":"Fossegrimen e TB","type":"Likeunderdelt","kilde":""},{"id":26,"navn":"Gamel-Holin","type":"Springar","kilde":""},{"id":27,"navn":"Gamle Guro","type":"Ulikeunderelt","kilde":""},{"id":28,"navn":"Gamle Guro, springar","type":"Springar","kilde":""},{"id":29,"navn":"Gammel-Husin","type":"Pols","kilde":""},{"id":30,"navn":"Gangar etter Olav Dale","type":"Ulikeunderelt","kilde":""},{"id":31,"navn":"Gangar etter Tarkjell Aslaksson Austad","type":"Ulikeunderelt","kilde":""},{"id":32,"navn":"Gaulslåen e Salve","type":"Likeunderdelt","kilde":""},{"id":33,"navn":"Gauslåen","type":"Likeunderdelt","kilde":""},{"id":34,"navn":"Gaute og Magnhild","type":"","kilde":""},{"id":35,"navn":"Getingen","type":"Polska","kilde":"Ola Bäckström"},{"id":36,"navn":"Guttorm Woxmyrs ril","type":"Ril","kilde":""},{"id":37,"navn":"Hæge du","type":"Springar","kilde":"Salve"},{"id":38,"navn":"Halling etter Beitohaugen","type":"Ulikeunderelt","kilde":"Håkon Asheim"},{"id":39,"navn":"Halling-Jorån","type":"Likeunderdelt","kilde":""},{"id":40,"navn":"Hans Nybøs springdans","type":"Springar","kilde":"Ånon"},{"id":41,"navn":"Holtrilen","type":"Ril","kilde":"Ånon"},{"id":42,"navn":"Ivelandsspringar","type":"Springar","kilde":""},{"id":43,"navn":"Jentebedrageren","type":"Likeunderdelt","kilde":"Salve"},{"id":44,"navn":"Juleverset","type":"Tone","kilde":"Hanne-Kjersti"},{"id":45,"navn":"Kari Hagen","type":"Springar","kilde":"Håko Asheim"},{"id":46,"navn":"Kjaranlien","type":"Likeunderdelt","kilde":"Salve"},{"id":47,"navn":"Kolbrennervisa","type":"Tone","kilde":"Ånon"},{"id":48,"navn":"Kråkevisa","type":"Tone","kilde":""},{"id":49,"navn":"Kubbestollåtten","type":"Likeunderdelt","kilde":"Gunnlaug Lien"},{"id":50,"navn":"Kursdreper'n","type":"Reinlender","kilde":"Ola B Straume"},{"id":51,"navn":"Labayalla","type":"","kilde":"Cätlin"},{"id":52,"navn":"Langemyrrilen","type":"Ril","kilde":""},{"id":53,"navn":"Lars feiar","type":"Springar","kilde":""},{"id":54,"navn":"Lea deg, gamle Ola","type":"Ulikeunderelt","kilde":""},{"id":55,"navn":"Lilleboa","type":"Reinlender","kilde":""},{"id":56,"navn":"Linborgjen","type":"Springar","kilde":""},{"id":57,"navn":"Linborgjen II","type":"Springar","kilde":""},{"id":58,"navn":"Livalsen","type":"Vals","kilde":""},{"id":59,"navn":"Nu solen går ned","type":"","kilde":""},{"id":60,"navn":"Ola Dyremyr","type":"Ril","kilde":""},{"id":61,"navn":"Opptaksprøva","type":"Ulikeunderelt","kilde":""},{"id":62,"navn":"På åkeren ut","type":"Tone","kilde":""},{"id":63,"navn":"Pers springar","type":"Springar","kilde":""},{"id":64,"navn":"Polka","type":"","kilde":""},{"id":65,"navn":"Polska av Eva","type":"","kilde":""},{"id":66,"navn":"Prestegangaren","type":"Likeunderdelt","kilde":""},{"id":67,"navn":"Raklekjølken","type":"Springar","kilde":""},{"id":68,"navn":"Rasmus Storm-polser","type":"Polska","kilde":""},{"id":69,"navn":"Reinlender etter Ola B Rise","type":"Reinlender","kilde":""},{"id":70,"navn":"Reisaren","type":"Ulikeunderelt","kilde":""},{"id":71,"navn":"Riksbanken","type":"Pols","kilde":""},{"id":72,"navn":"Ril etter Emmanuel Lauen 1","type":"","kilde":""},{"id":73,"navn":"ril etter Emmanuel Lauen 2","type":"","kilde":""},{"id":74,"navn":"Seljefløytegangar","type":"","kilde":""},{"id":75,"navn":"Sigurd Soredal","type":"","kilde":""},{"id":76,"navn":"Sjøfløytespringar","type":"Springar","kilde":""},{"id":77,"navn":"Skårsvikjen","type":"Ulikeunderelt","kilde":""},{"id":78,"navn":"Skomakerhallingen","type":"Ulikeunderelt","kilde":""},{"id":79,"navn":"Skuldalsbrura","type":"Ulikeunderelt","kilde":""},{"id":80,"navn":"Sordølen","type":"Likeunderdelt","kilde":""},{"id":81,"navn":"Soteroen","type":"Ulikeunderelt","kilde":""},{"id":82,"navn":"Spinnaren","type":"","kilde":""},{"id":83,"navn":"Springar etc","type":"Springar","kilde":""},{"id":84,"navn":"Springar etter Knut Nord-Juveli","type":"Springar","kilde":""},{"id":85,"navn":"Springdans fra Vestfold","type":"Springar","kilde":""},{"id":86,"navn":"Springleik","type":"Springar","kilde":""},{"id":87,"navn":"Stevtoner","type":"","kilde":""},{"id":88,"navn":"Stuvstadhalling","type":"Likeunderdelt","kilde":""},{"id":89,"navn":"Sule Skerry","type":"","kilde":""},{"id":90,"navn":"Svarteborgaren","type":"Polska","kilde":""},{"id":91,"navn":"Tone etter Hanne Kjersti","type":"Tone","kilde":""},{"id":92,"navn":"Tor Halvorsens vals","type":"","kilde":""},{"id":93,"navn":"Tostensen","type":"Ril","kilde":""},{"id":94,"navn":"Tri hjarter på ei snor","type":"Springar","kilde":""},{"id":95,"navn":"Triolåter","type":"","kilde":""},{"id":96,"navn":"Tukthusen","type":"Springar","kilde":""},{"id":97,"navn":"Tveitlien","type":"Ulikeunderelt","kilde":""},{"id":98,"navn":"Tversover'n","type":"Ulikeunderelt","kilde":""},{"id":99,"navn":"Ufredsslåtten","type":"Ulikeunderelt","kilde":""},{"id":100,"navn":"Vals e Olav B Straume","type":"Vals","kilde":""},{"id":101,"navn":"Vals etter Åni Smeland","type":"Vals","kilde":""},{"id":102,"navn":"Vals etter Peder i Lia","type":"Vals","kilde":""},{"id":103,"navn":"Vårnaua","type":"Ulikeunderelt","kilde":""},{"id":104,"navn":"Venner og frender","type":"","kilde":""},{"id":105,"navn":"Vetl-Imbert","type":"Springar","kilde":""},{"id":106,"navn":"Vierlivalsen","type":"","kilde":""},{"id":107,"navn":"Vigstamoin","type":"Springar","kilde":""},{"id":108,"navn":"Visa från Malung","type":"","kilde":""},{"id":109,"navn":"VossastRil","type":"","kilde":""}],"samlingar":[{"id":1,"navn":"Tellefs sjøfløyte","type":"","år":"2016"},{"id":2,"navn":"Den norske sekkepipa","type":"","år":"2015"},{"id":3,"navn":"North Sea Music","type":"","år":"1997"},{"id":4,"navn":"Slinkombas","type":"","år":"1982"},{"id":5,"navn":"..og bas igjen","type":"","år":"1979"},{"id":6,"navn":"Den norske sekkepipa II","type":"","år":""},{"id":7,"navn":"Reel Date","type":"","år":""},{"id":8,"navn":"Upstairs in a Tent","type":"","år":""}],"koblingar":[{"latId":2,"samlId":4},{"latId":35,"samlId":8}],"nextLatId":110,"nextSamlId":9,"latTyper":["Likeunderdelt","Marsj","Pols","Polska","Reinlender","Ril","Springar","Tone","Ulikeunderelt","Vals","Visetone"],"instTyper":["Fele","Sekkepipe","Sjøfløyte"],"landTyper":["Norge","Sverige","Irland"]};
+
+// Electron: data stored as JSON files via IPC
+let data={}, noter={}, noter2={}, latSort={field:'namn',asc:true}; // noter2: {latId:[{tittel,sti,kommentar}]}
+let editingNoterId=null, activeSamlId=null, editingLatId=null, editingSamlId=null;
+
+async function load(){
+  try{
+    const res=await fetch('/api/data');
+    const json=await res.json();
+    data=json.data||JSON.parse(JSON.stringify(DEFAULT_DATA));
+    noter=json.noter||{};
+    noter2=json.noter2||{};
+  }catch(e){ data=JSON.parse(JSON.stringify(DEFAULT_DATA)); noter={}; noter2={}; }
+  ['latar','samlingar','koblingar'].forEach(k=>{if(!data[k])data[k]=[];});
+  if(!data.nextLatId)data.nextLatId=110;
+  if(!data.nextSamlId)data.nextSamlId=9;
+  if(!data.instTyper)data.instTyper=['Fele','Sekkepipe','Sjøfløyte'];
+  if(!data.landTyper)data.landTyper=['Norge','Sverige','Irland'];
+  if(!data.samlKolonner)data.samlKolonner={};
+  if(!data.samlOrder)data.samlOrder={};
+  data.latar.forEach(l=>{if(!l.instrument)l.instrument=[];if(l.land===undefined)l.land='';});
+}
+function save(){
+  fetch('/api/data',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({data,noter,noter2})}).catch(()=>{});
+  showStatus('Lagret');
+}
+function showStatus(m){const b=document.getElementById('status-bar');b.textContent=m;b.classList.add('show');clearTimeout(b._t);b._t=setTimeout(()=>b.classList.remove('show'),1800);}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
+
+function showTab(tab){
+  document.querySelectorAll('.tabpanel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('tab-'+tab).classList.add('active');
+  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',(i===0&&tab==='latar')||(i===1&&tab==='samlingar')));
+  if(tab==='samlingar'){renderSamlList();if(activeSamlId)renderSamlDetail(activeSamlId);}
+  if(tab==='kilder'){renderKildeList();}
+  if(tab==='innstillinger'){buildInnstillinger();}
+}
+
+
+function buildFiltersPreserve(){
+  const saves={};
+  ['filter-type','filter-saml','filter-kilde','filter-inst'].forEach(id=>{
+    const el=document.getElementById(id);if(el)saves[id]=el.value;
+  });
+  buildFilters();
+  ['filter-type','filter-saml','filter-kilde','filter-inst'].forEach(id=>{
+    const el=document.getElementById(id);if(el&&saves[id])el.value=saves[id];
+  });
+}
+function buildFilters(){
+  const ts=document.getElementById('filter-type'),ss=document.getElementById('filter-saml'),mt=document.getElementById('ml-type');
+  const types=[...new Set(data.latar.map(l=>l.type).filter(Boolean))].sort();
+  [ts,mt].forEach(sel=>{
+    const f=sel.options[0];sel.innerHTML='';sel.appendChild(f);
+    if(sel===ts){const o=document.createElement('option');o.value='__ingen__';o.textContent='Ingen type';sel.appendChild(o);}
+    types.forEach(t=>{const o=document.createElement('option');o.value=t;o.textContent=t;sel.appendChild(o);});
+  });
+  const firstS=ss.options[0];ss.innerHTML='';ss.appendChild(firstS);
+  const noSaml=document.createElement('option');noSaml.value='__ingen__';noSaml.textContent='Ingen samling';ss.appendChild(noSaml);
+  data.samlingar.forEach(s=>{const o=document.createElement('option');o.value=s.id;o.textContent=s.navn;ss.appendChild(o);});
+  const fk=document.getElementById('filter-kilde');
+  if(fk){
+    const fkf=fk.options[0];fk.innerHTML='';fk.appendChild(fkf);
+    const noKilde=document.createElement('option');noKilde.value='__ingen__';noKilde.textContent='Ingen kilde';fk.appendChild(noKilde);
+    getAllKilder().forEach(k=>{const o=document.createElement('option');o.value=k;o.textContent=k;fk.appendChild(o);});
+  }
+}
+
+function getSamlForLat(id){return data.koblingar.filter(k=>k.latId===id).map(k=>data.samlingar.find(s=>s.id===k.samlId)).filter(Boolean);}
+
+
+
+function renderInstCell(latId){
+  const lat=data.latar.find(l=>l.id===latId);if(!lat)return '';
+  const inst=lat.instrument||[];
+  const available=data.instTyper.filter(i=>!inst.includes(i));
+  let out=inst.map(i=>`<span class="inst-tag">${esc(i)}<span class="itag-rm" onclick="removeInstFromLat(${latId},'${esc(i)}')">✕</span></span>`).join('');
+  out+=`<select class="inst-inline-select" onchange="addInstToLatInline(${latId},this)">
+    <option value="">+ Instrument</option>
+    ${available.map(i=>`<option value="${esc(i)}">${esc(i)}</option>`).join('')}
+    <option value="__ny__">— Nytt instrument…</option>
+  </select>`;
+  return out;
+}
+function addInstToLatInline(latId,sel){
+  const val=sel.value;if(!val)return;
+  if(val==='__ny__'){
+    showNyttInstInput(latId,'ic-'+latId,sel);
+    return;
+  }
+  const lat=data.latar.find(l=>l.id===latId);if(!lat)return;
+  if(!lat.instrument)lat.instrument=[];
+  if(!lat.instrument.includes(val))lat.instrument.push(val);
+  save();
+  const c=document.getElementById('ic-'+latId);if(c)c.innerHTML=renderInstCell(latId);
+}
+function removeInstFromLat(latId,inst){
+  const lat=data.latar.find(l=>l.id===latId);if(!lat)return;
+  lat.instrument=(lat.instrument||[]).filter(i=>i!==inst);
+  save();
+  const c=document.getElementById('ic-'+latId);if(c)c.innerHTML=renderInstCell(latId);
+}
+function renderSamlCell(latId){
+  const samlar=getSamlForLat(latId);
+  const available=data.samlingar.filter(s=>!samlar.find(x=>x.id===s.id));
+  let html=samlar.map(s=>`<span class="saml-tag">${esc(s.navn)}<span class="stag-rm" onclick="removeSamlFromLat(${latId},${s.id})">✕</span></span>`).join('');
+  if(available.length){
+    html+=`<select class="saml-inline-select" onchange="addSamlToLatInline(${latId},this)">
+      <option value="">+ Samling</option>
+      ${available.map(s=>`<option value="${s.id}">${esc(s.navn)}</option>`).join('')}
+    </select>`;
+  }
+  return html;
+}
+function addSamlToLatInline(latId,sel){
+  const samlId=parseInt(sel.value);if(!samlId)return;
+  if(!data.koblingar.find(k=>k.latId===latId&&k.samlId===samlId))data.koblingar.push({latId,samlId});
+  save();
+  const c=document.getElementById('sc-'+latId);if(c)c.innerHTML=renderSamlCell(latId);
+  renderSamlList();buildFilters();
+}
+function removeSamlFromLat(latId,samlId){
+  data.koblingar=data.koblingar.filter(k=>!(k.latId===latId&&k.samlId===samlId));
+  save();
+  const c=document.getElementById('sc-'+latId);if(c)c.innerHTML=renderSamlCell(latId);
+  renderSamlList();buildFilters();
+}
+function renderLatar(){
+  const q=document.getElementById('search-lat').value.trim().toLowerCase();
+  const ft=document.getElementById('filter-type').value;
+  const fs=document.getElementById('filter-saml').value;
+  const fk=document.getElementById('filter-kilde')?document.getElementById('filter-kilde').value:'';
+  let rows=data.latar.filter(l=>{
+    if(q&&!l.navn.toLowerCase().includes(q)&&!(l.kilde||'').toLowerCase().includes(q))return false;
+    if(ft==="__ingen__"&&l.type)return false;
+    else if(ft&&ft!=="__ingen__"&&l.type!==ft)return false;
+    if(fs==="__ingen__"){if(data.koblingar.some(k=>k.latId===l.id))return false;}
+    else if(fs){const ids=data.koblingar.filter(k=>k.samlId===parseInt(fs)).map(k=>k.latId);if(!ids.includes(l.id))return false;}
+    if(fk==='__ingen__'&&(l.kilde||''))return false;
+    else if(fk&&fk!=='__ingen__'&&l.kilde!==fk)return false;
+    return true;
+  });
+  rows.sort((a,b)=>{const f=latSort.field,va=f==='namn'?a.navn:a.type,vb=f==='namn'?b.navn:b.type;return latSort.asc?va.localeCompare(vb,'no'):vb.localeCompare(va,'no');});
+  document.getElementById('lat-count').textContent=rows.length+' av '+data.latar.length+' låtar';
+  document.getElementById('lat-empty').style.display=rows.length===0?'':'none';
+  const tbody=document.getElementById('lat-tbody');tbody.innerHTML='';
+  rows.forEach(lat=>{
+    const samlar=getSamlForLat(lat.id),sti=noter[lat.id]||'';
+    const tr=document.createElement('tr');tr.dataset.id=lat.id;
+    const instArr=lat.instrument||[];
+    const harNoter=(noter[lat.id]||noter2[lat.id]?.length);
+    tr.innerHTML=`<td class="navn"><a class="lat-navn-link" onclick="openLatSide(${lat.id})">${esc(lat.navn)}</a>${harNoter?'<span class="notat-dot" title="Har noter">♩</span>':''}</td>
+    <td><div class="type-cell" id="tc-${lat.id}">${renderTypeCell(lat.id)}</div></td>
+    <td><div class="land-cell" id="ldc-${lat.id}">${renderLandCell(lat.id)}</div></td>
+    <td><div class="kilde-cell" id="kc-${lat.id}">${renderKildeCell(lat.id)}</div></td>
+    <td><div class="saml-cell" id="sc-${lat.id}">${renderSamlCell(lat.id)}</div></td>
+    <td><div class="inst-cell" id="ic-${lat.id}">${renderInstCell(lat.id)}</div></td>
+    <td><div class="noter-cell" id="nc-${lat.id}">${renderNoterCell(lat.id,sti)}</div></td>
+`;
+    tbody.appendChild(tr);
+  });
+}
+
+function renderNoterCell(id,sti){
+  if(editingNoterId===id)return `<input class="noter-input" id="ni-${id}" type="text" value="${esc(sti)}" placeholder="Filsti…" onkeydown="if(event.key==='Enter')saveNoter(${id});if(event.key==='Escape')cancelNoter(${id})"><button class="save-btn" onclick="pickPDFForNoterCell(${id})">Velg…</button><button class="save-btn" onclick="saveNoter(${id})">OK</button><button class="cancel-btn" onclick="cancelNoter(${id})">✕</button>`;
+  if(sti)return `<a class="noter-link" title="${esc(sti)}" onclick="openPDF(${id})">${esc(sti.split(/[/\\]/).pop()||sti)}</a><button class="edit-btn" onclick="startEdit(${id})">Endre</button>`;
+  return `<button class="edit-btn" onclick="startEdit(${id})">+ Legg til</button>`;
+}
+function startEdit(id){editingNoterId=id;const c=document.getElementById('nc-'+id);if(c)c.innerHTML=renderNoterCell(id,noter[id]||'');setTimeout(()=>{const i=document.getElementById('ni-'+id);if(i)i.focus();},20);}
+function saveNoter(id){const i=document.getElementById('ni-'+id);if(!i)return;const v=i.value.trim();if(v)noter[id]=v;else delete noter[id];editingNoterId=null;save();const c=document.getElementById('nc-'+id);if(c)c.innerHTML=renderNoterCell(id,noter[id]||'');}
+function cancelNoter(id){editingNoterId=null;const c=document.getElementById('nc-'+id);if(c)c.innerHTML=renderNoterCell(id,noter[id]||'');}
+
+
+
+/* ── KILDER ── */
+let activeKildeId = null;
+
+function getAllKilder(){
+  // Collect all unique kilder from latar
+  const set = new Set(data.latar.map(l=>l.kilde||'').filter(Boolean));
+  if(data.kilder) data.kilder.forEach(k=>set.add(k));
+  return [...set].sort((a,b)=>a.localeCompare(b,'no'));
+}
+
+
+/* ── LAND ── */
+function renderLandCell(latId){
+  const lat=data.latar.find(l=>l.id===latId);if(!lat)return '';
+  const land=lat.land||'';
+  return `<select class="inst-inline-select" style="color:var(--ink2);border-color:var(--border2);" onchange="setLandFromSelect(${latId},this)">
+    <option value="">${land||'+ Land'}</option>
+    ${data.landTyper.filter(l=>l!==land).map(l=>`<option value="${esc(l)}">${esc(l)}</option>`).join('')}
+    <option value="__ny__">— Nytt land…</option>
+    ${land?`<option value="__fjern__">Fjern</option>`:''}
+  </select>${land?`<span class="kilde-text" style="margin-left:.25rem;">${esc(land)}</span>`:''}`;
+}
+
+function setLandFromSelect(latId,sel){
+  let val=sel.value;if(!val)return;
+  const lat=data.latar.find(l=>l.id===latId);if(!lat)return;
+  if(val==='__fjern__'){lat.land='';save();refreshLandCell(latId);return;}
+  if(val==='__ny__'){showNyttLandInput(latId,sel);return;}
+  lat.land=val;save();refreshLandCell(latId);
+  if(document.getElementById('mls-tittel'))renderLatsideLand(latId);
+}
+
+function refreshLandCell(latId){
+  const c=document.getElementById('ldc-'+latId);if(c)c.innerHTML=renderLandCell(latId);
+}
+
+function showNyttLandInput(latId,sel){
+  sel.value='';
+  const cell=document.getElementById('ldc-'+latId);if(!cell)return;
+  const row=document.createElement('div');
+  row.style.cssText='display:flex;gap:4px;margin-top:4px;align-items:center;';
+  row.innerHTML=`<input id="ny-land-inp-${latId}" type="text" placeholder="Landnavn…" style="font-family:inherit;font-size:.78rem;padding:2px 6px;border:1px solid var(--accent2);border-radius:3px;background:var(--paper);color:var(--ink);flex:1;outline:none;">
+  <button onclick="confirmNyttLand(${latId})" style="font-size:.72rem;padding:2px 7px;border:1px solid var(--green);border-radius:3px;background:var(--green-bg);color:var(--green);cursor:pointer;">OK</button>
+  <button onclick="this.parentElement.remove()" style="font-size:.72rem;padding:2px 6px;border:1px solid var(--border2);border-radius:3px;background:none;color:var(--ink3);cursor:pointer;">✕</button>`;
+  cell.appendChild(row);
+  setTimeout(()=>document.getElementById('ny-land-inp-'+latId)?.focus(),30);
+  document.getElementById('ny-land-inp-'+latId)?.addEventListener('keydown',e=>{
+    if(e.key==='Enter')confirmNyttLand(latId);
+    if(e.key==='Escape')row.remove();
+  });
+}
+
+function confirmNyttLand(latId){
+  const inp=document.getElementById('ny-land-inp-'+latId);if(!inp)return;
+  const val=inp.value.trim();if(!val)return;
+  if(!data.landTyper.includes(val))data.landTyper.push(val);
+  const lat=data.latar.find(l=>l.id===latId);if(!lat)return;
+  lat.land=val;save();refreshLandCell(latId);
+  if(document.getElementById('mls-tittel'))renderLatsideLand(latId);
+}
+
+function renderLatsideLand(latId){
+  const el=document.getElementById('mls-land');if(!el)return;
+  const lat=data.latar.find(l=>l.id===latId);if(!lat)return;
+  const land=lat.land||'';
+  el.innerHTML=`<div style="display:flex;align-items:center;gap:.4rem;flex-wrap:wrap;">
+    ${land?`<span class="kilde-text">${esc(land)}</span>`:'<span style="color:var(--ink3);font-style:italic;font-size:.84rem;">Ikke angitt</span>'}
+    <select class="inst-inline-select" onchange="setLatsideLand(${latId},this)" style="color:var(--ink2);">
+      <option value="">${land?'Endre…':'+ Land'}</option>
+      ${data.landTyper.filter(l=>l!==land).map(l=>`<option value="${esc(l)}">${esc(l)}</option>`).join('')}
+      <option value="__ny__">— Nytt land…</option>
+      ${land?`<option value="__fjern__">Fjern</option>`:''}
+    </select>
+  </div>`;
+}
+
+function setLatsideLand(latId,sel){
+  let val=sel.value;if(!val)return;
+  const lat=data.latar.find(l=>l.id===latId);if(!lat)return;
+  if(val==='__fjern__'){lat.land='';save();renderLatsideLand(latId);refreshLandCell(latId);return;}
+  if(val==='__ny__'){
+    const ny=window._nyttLandPrompt=prompt('Nytt land:');
+    if(!ny||!ny.trim())return;
+    if(!data.landTyper.includes(ny.trim()))data.landTyper.push(ny.trim());
+    val=ny.trim();
+  }
+  lat.land=val;save();renderLatsideLand(latId);refreshLandCell(latId);
+}
+function renderKildeCell(latId){
+  const lat=data.latar.find(l=>l.id===latId);if(!lat)return '';
+  const kilde=lat.kilde||'';
+  const kilder=getAllKilder();
+  const available=kilder.filter(k=>k!==kilde);
+  return `<div style="display:flex;align-items:center;gap:.35rem;flex-wrap:wrap;">
+    ${kilde?`<span class="kilde-text">${esc(kilde)}</span>`:''}
+    <select class="inst-inline-select" onchange="setKildeFromSelect(${latId},this)" style="color:var(--ink2);border-color:var(--border2);">
+      <option value="">${kilde?'Endre…':'+ Kilde'}</option>
+      ${available.map(k=>`<option value="${esc(k)}">${esc(k)}</option>`).join('')}
+      <option value="__ny__">— Ny kilde…</option>
+      ${kilde?`<option value="__fjern__">Fjern kilde</option>`:''}
+    </select>
+  </div>`;
+}
+
+function setKildeFromSelect(latId, sel){
+  let val=sel.value; if(!val)return;
+  if(val==='__fjern__'){
+    const lat=data.latar.find(l=>l.id===latId);if(lat)lat.kilde='';
+    save(); const c=document.getElementById('kc-'+latId);if(c)c.innerHTML=renderKildeCell(latId);
+    return;
+  }
+  if(val==='__ny__'){
+    showNyKildeInput(latId,'kc-'+latId,sel); return;
+  }
+  const lat=data.latar.find(l=>l.id===latId);if(!lat)return;
+  lat.kilde=val; save();
+  const c=document.getElementById('kc-'+latId);if(c)c.innerHTML=renderKildeCell(latId);
+  if(activeKildeId===val) renderKildeDetail(val);
+}
+
+function showNyKildeInput(latId, containerId, sel){
+  sel.value='';
+  const container=document.getElementById(containerId);if(!container)return;
+  const row=document.createElement('div');
+  row.style.cssText='display:flex;gap:4px;margin-top:4px;align-items:center;';
+  row.innerHTML=`<input id="ny-kilde-inp-${latId}" type="text" placeholder="Kildenavn…" style="font-family:inherit;font-size:.78rem;padding:2px 6px;border:1px solid var(--accent2);border-radius:3px;background:var(--paper);color:var(--ink);flex:1;outline:none;">
+  <button onclick="confirmNyKilde(${latId},'${containerId}')" style="font-size:.72rem;padding:2px 7px;border:1px solid var(--green);border-radius:3px;background:var(--green-bg);color:var(--green);cursor:pointer;">OK</button>
+  <button onclick="this.parentElement.remove()" style="font-size:.72rem;padding:2px 6px;border:1px solid var(--border2);border-radius:3px;background:none;color:var(--ink3);cursor:pointer;">✕</button>`;
+  container.appendChild(row);
+  setTimeout(()=>document.getElementById('ny-kilde-inp-'+latId)?.focus(),30);
+  document.getElementById('ny-kilde-inp-'+latId)?.addEventListener('keydown',e=>{
+    if(e.key==='Enter')confirmNyKilde(latId,containerId);
+    if(e.key==='Escape')row.remove();
+  });
+}
+
+function confirmNyKilde(latId, containerId){
+  const inp=document.getElementById('ny-kilde-inp-'+latId);if(!inp)return;
+  const val=inp.value.trim();if(!val)return;
+  const lat=data.latar.find(l=>l.id===latId);if(!lat)return;
+  lat.kilde=val; save();
+  if(containerId==='mls-kilde-wrap') renderLatsideKilde(latId);
+  else { const c=document.getElementById(containerId);if(c)c.innerHTML=renderKildeCell(latId); }
+  renderKildeList();
+}
+
+function renderLatsideKilde(latId){
+  const wrap=document.getElementById('mls-kilde');if(!wrap)return;
+  const lat=data.latar.find(l=>l.id===latId);if(!lat)return;
+  const kilde=lat.kilde||'';
+  const kilder=getAllKilder();
+  const available=kilder.filter(k=>k!==kilde);
+  wrap.id='mls-kilde';
+  wrap.innerHTML=`<div id="mls-kilde-wrap" style="display:flex;align-items:center;gap:.4rem;flex-wrap:wrap;">
+    ${kilde?`<span class="kilde-text">${esc(kilde)}</span>`:'<span style="color:var(--ink3);font-style:italic;font-size:.84rem;">Ingen kilde</span>'}
+    <select class="inst-inline-select" onchange="setLatsideKilde(${latId},this)" style="color:var(--ink2);">
+      <option value="">${kilde?'Endre…':'+ Kilde'}</option>
+      ${available.map(k=>`<option value="${esc(k)}">${esc(k)}</option>`).join('')}
+      <option value="__ny__">— Ny kilde…</option>
+      ${kilde?`<option value="__fjern__">Fjern</option>`:''}
+    </select>
+  </div>`;
+}
+
+function setLatsideKilde(latId,sel){
+  let val=sel.value;if(!val)return;
+  if(val==='__fjern__'){
+    const lat=data.latar.find(l=>l.id===latId);if(lat)lat.kilde='';
+    save();renderLatsideKilde(latId);return;
+  }
+  if(val==='__ny__'){ showNyKildeInput(latId,'mls-kilde-wrap',sel);return; }
+  const lat=data.latar.find(l=>l.id===latId);if(!lat)return;
+  lat.kilde=val; save(); renderLatsideKilde(latId);
+  const c=document.getElementById('kc-'+latId);if(c)c.innerHTML=renderKildeCell(latId);
+}
+
+/* Kilder-fane */
+function renderKildeList(){
+  const q=document.getElementById('search-kilde')?.value.trim().toLowerCase()||'';
+  const kilder=getAllKilder().filter(k=>!q||k.toLowerCase().includes(q));
+  const c=document.getElementById('kilde-items');if(!c)return;
+  c.innerHTML='';
+  if(!kilder.length){c.innerHTML='<div class="empty">Ingen kilder</div>';return;}
+  kilder.forEach(k=>{
+    const antall=data.latar.filter(l=>l.kilde===k).length;
+    const div=document.createElement('div');
+    div.className='saml-item'+(activeKildeId===k?' active':'');
+    div.innerHTML=`<div class="si-navn">${esc(k)}</div><div class="si-meta">${antall} låtar</div>`;
+    div.onclick=()=>{activeKildeId=k;renderKildeList();renderKildeDetail(k);};
+    c.appendChild(div);
+  });
+}
+
+function renderKildeDetail(kilde){
+  const det=document.getElementById('kilde-detail');if(!det)return;
+  const latar=data.latar.filter(l=>l.kilde===kilde);
+  const kildeEsc=esc(kilde).replace(/'/g,"\'");
+  const cols=getSamlKolonner(samlId);
+  det.innerHTML=`
+    <div class="saml-detail-header">
+      <h2>${esc(kilde)}</h2>
+      <span class="meta">${latar.length} låter</span>
+      <span class="spacer"></span>
+      <button class="btn" style="color:var(--accent);border-color:var(--accent2);" onclick="slettKilde('${kildeEsc}')">Slett kilde</button>
+      <button class="btn" onclick="renameKilde('${kildeEsc}')">Endre navn</button>
+    </div>
+    <div class="saml-detail-body">
+      <div class="add-lat-area" style="margin-bottom:1.4rem;">
+        <div class="sec-title">Legg til låt</div>
+        <input class="add-lat-search" type="text" id="alkq-${kildeEsc}" placeholder="Søk eller skriv navn på ny låt…" oninput="renderKildeALR('${kildeEsc}')" onkeydown="kildeALRKeydown(event,'${kildeEsc}')">
+        <div class="add-lat-results" id="kalr-${kildeEsc}"></div>
+      </div>
+      <div class="sec-title" style="margin-bottom:.5rem;">${latar.length} låter med denne kilden</div>
+      <div>
+        ${latar.length===0
+          ?'<div style="color:var(--ink3);font-style:italic;font-size:.84rem;">Ingen låter ennå</div>'
+          :latar.map(l=>`<div class="lat-in-saml">
+            <a class="lat-navn-link" onclick="openLatSide(${l.id})">${esc(l.navn)}</a>
+            ${l.type?`<span class="li-type">${esc(l.type)}</span>`:''}
+            <button class="remove-btn" onclick="removeKildeFromLat(${l.id},'${kildeEsc}')">Fjern</button>
+          </div>`).join('')}
+      </div>
+    </div>`;
+}
+
+function addNyKilde(){
+  const navn=window.prompt?window.prompt('Navn på ny kilde:'):'';
+  if(!navn||!navn.trim())return;
+  // Just open detail for this new kilde name — it becomes real when assigned to a lat
+  activeKildeId=navn.trim();
+  renderKildeList();
+  renderKildeDetail(navn.trim());
+}
+
+
+function renderKildeALR(kilde){
+  const inpId='alkq-'+kilde;
+  const q=((document.getElementById(inpId)||{}).value||'').trim();
+  const already=new Set(data.latar.filter(l=>l.kilde===kilde).map(l=>l.id));
+  const c=document.getElementById('kalr-'+kilde);if(!c)return;
+  if(!q){c.innerHTML='';return;}
+  const ql=q.toLowerCase();
+  const m=data.latar.filter(l=>l.navn.toLowerCase().includes(ql)).slice(0,20);
+  const exactMatch=data.latar.find(l=>l.navn.toLowerCase()===ql);
+  let out=m.map(l=>{
+    const inKilde=already.has(l.id);
+    return `<div class="alr${inKilde?' alr-in':''}" ${inKilde?'':'onclick="assignKildeToLat('+l.id+',\''+esc(kilde)+'\')"'}>
+      <span style="flex:1;">${esc(l.navn)}</span>
+      ${l.type?`<span class="alr-type">${esc(l.type)}</span>`:''}
+      ${inKilde?'<span class="alr-type" style="color:var(--green);font-style:italic;">har denne kilden</span>':''}
+    </div>`;
+  }).join('');
+  if(!exactMatch){
+    window._pendingNyLat=q; window._pendingKilde=kilde;
+    out+=`<div class="alr alr-create" onclick="createAndAssignKilde(window._pendingNyLat,window._pendingKilde)">
+      <span style="flex:1;font-style:italic;">Opprett «${esc(q)}» og legg til</span>
+      <span class="alr-type" style="color:var(--accent);">+ Ny låt</span>
+    </div>`;
+  }
+  c.innerHTML=out;
+}
+function assignKildeToLat(latId, kilde){
+  const lat=data.latar.find(l=>l.id===latId);if(!lat)return;
+  lat.kilde=kilde; save();
+  renderKildeDetail(kilde); renderKildeList(); renderLatar();
+  const inp=document.getElementById('alkq-'+kilde);
+  if(inp){inp.value='';document.getElementById('kalr-'+kilde).innerHTML='';}
+}
+function createAndAssignKilde(navn, kilde){
+  const id=data.nextLatId++;
+  data.latar.push({id,navn,type:'',kilde,instrument:[]});
+  save();renderKildeDetail(kilde);renderKildeList();renderLatar();
+  const inp=document.getElementById('alkq-'+kilde);
+  if(inp){inp.value='';document.getElementById('kalr-'+kilde).innerHTML='';}
+}
+function removeKildeFromLat(latId, kilde){
+  const lat=data.latar.find(l=>l.id===latId);if(!lat)return;
+  lat.kilde=''; save();
+  renderKildeDetail(kilde); renderKildeList(); renderLatar();
+  const c=document.getElementById('kc-'+latId);if(c)c.innerHTML=renderKildeCell(latId);
+}
+function kildeALRKeydown(e, kilde){
+  if(e.key!=='Enter')return;
+  const q=((document.getElementById('alkq-'+kilde)||{}).value||'').trim();
+  if(!q)return;
+  const already=new Set(data.latar.filter(l=>l.kilde===kilde).map(l=>l.id));
+  const exact=data.latar.find(l=>l.navn.toLowerCase()===q.toLowerCase());
+  if(exact){if(!already.has(exact.id))assignKildeToLat(exact.id,kilde);return;}
+  const m=data.latar.filter(l=>!already.has(l.id)&&l.navn.toLowerCase().includes(q.toLowerCase()));
+  if(m.length===1)assignKildeToLat(m[0].id,kilde);
+  else createAndAssignKilde(q,kilde);
+}
+function renameKilde(gammelt){
+  const nytt=window.prompt?window.prompt('Nytt navn:',gammelt):'';
+  if(!nytt||!nytt.trim()||nytt===gammelt)return;
+  data.latar.forEach(l=>{if(l.kilde===gammelt)l.kilde=nytt.trim();});
+  activeKildeId=nytt.trim();
+  save();renderKildeList();renderKildeDetail(nytt.trim());renderLatar();
+}
+
+/* ── TYPE INLINE ── */
+function renderTypeCell(latId){
+  const lat=data.latar.find(l=>l.id===latId);if(!lat)return '';
+  const type=lat.type||'';
+  const types=data.latTyper||[];
+  const available=types.filter(t=>t!==type);
+  return `<div style="display:flex;align-items:center;gap:.3rem;flex-wrap:wrap;">
+    ${type?`<span class="type-badge">${esc(type)}</span>`:''}
+    <select class="inst-inline-select" onchange="setTypeFromSelect(${latId},this)" style="color:var(--ink2);border-color:var(--border2);">
+      <option value="">${type?'Endre…':'+ Type'}</option>
+      ${available.map(t=>`<option value="${esc(t)}">${esc(t)}</option>`).join('')}
+      <option value="__ny__">— Ny type…</option>
+      ${type?`<option value="__fjern__">Fjern type</option>`:''}
+    </select>
+  </div>`;
+}
+function setTypeFromSelect(latId,sel){
+  let val=sel.value;if(!val)return;
+  if(val==='__fjern__'){
+    const lat=data.latar.find(l=>l.id===latId);if(lat)lat.type='';
+    save();refreshTypeCell(latId);return;
+  }
+  if(val==='__ny__'){showNyTypeInput(latId,'tc-'+latId,sel);return;}
+  const lat=data.latar.find(l=>l.id===latId);if(!lat)return;
+  lat.type=val;save();refreshTypeCell(latId);
+  if(document.getElementById('mls-tittel')) renderLatsideType(latId);
+}
+function refreshTypeCell(latId){
+  const c=document.getElementById('tc-'+latId);if(c)c.innerHTML=renderTypeCell(latId);
+  buildFiltersPreserve();renderLatar();
+}
+function showNyTypeInput(latId,containerId,sel){
+  sel.value='';
+  const container=document.getElementById(containerId);if(!container)return;
+  const row=document.createElement('div');
+  row.style.cssText='display:flex;gap:4px;margin-top:4px;align-items:center;';
+  row.innerHTML=`<input id="ny-type-inp-${latId}" type="text" placeholder="Typenavn…" style="font-family:inherit;font-size:.78rem;padding:2px 6px;border:1px solid var(--accent2);border-radius:3px;background:var(--paper);color:var(--ink);flex:1;outline:none;">
+  <button onclick="confirmNyType(${latId},'${containerId}')" style="font-size:.72rem;padding:2px 7px;border:1px solid var(--green);border-radius:3px;background:var(--green-bg);color:var(--green);cursor:pointer;">OK</button>
+  <button onclick="this.parentElement.remove()" style="font-size:.72rem;padding:2px 6px;border:1px solid var(--border2);border-radius:3px;background:none;color:var(--ink3);cursor:pointer;">✕</button>`;
+  container.appendChild(row);
+  setTimeout(()=>document.getElementById('ny-type-inp-'+latId)?.focus(),30);
+  document.getElementById('ny-type-inp-'+latId)?.addEventListener('keydown',e=>{
+    if(e.key==='Enter')confirmNyType(latId,containerId);
+    if(e.key==='Escape')row.remove();
+  });
+}
+function confirmNyType(latId,containerId){
+  const inp=document.getElementById('ny-type-inp-'+latId);if(!inp)return;
+  const val=inp.value.trim();if(!val)return;
+  if(!data.latTyper.includes(val))data.latTyper.push(val);
+  const lat=data.latar.find(l=>l.id===latId);if(!lat)return;
+  lat.type=val;save();
+  if(containerId.startsWith('mls-')) renderLatsideType(latId);
+  else refreshTypeCell(latId);
+  buildFiltersPreserve();
+}
+function renderLatsideType(latId){
+  const el=document.getElementById('mls-type');if(!el)return;
+  const lat=data.latar.find(l=>l.id===latId);if(!lat)return;
+  const type=lat.type||'';
+  const types=data.latTyper||[];
+  const available=types.filter(t=>t!==type);
+  el.innerHTML=`<div style="display:flex;align-items:center;gap:.4rem;flex-wrap:wrap;">
+    ${type?`<span class="type-badge">${esc(type)}</span>`:'<span style="color:var(--ink3);font-style:italic;font-size:.84rem;">Ingen type</span>'}
+    <select class="inst-inline-select" onchange="setLatsideType(${latId},this)" style="color:var(--ink2);">
+      <option value="">${type?'Endre…':'+ Type'}</option>
+      ${available.map(t=>`<option value="${esc(t)}">${esc(t)}</option>`).join('')}
+      <option value="__ny__">— Ny type…</option>
+      ${type?`<option value="__fjern__">Fjern type</option>`:''}
+    </select>
+  </div>`;
+}
+function setLatsideType(latId,sel){
+  let val=sel.value;if(!val)return;
+  if(val==='__fjern__'){
+    const lat=data.latar.find(l=>l.id===latId);if(lat)lat.type='';
+    save();renderLatsideType(latId);refreshTypeCell(latId);return;
+  }
+  if(val==='__ny__'){showNyTypeInput(latId,'mls-type',sel);return;}
+  const lat=data.latar.find(l=>l.id===latId);if(!lat)return;
+  lat.type=val;save();renderLatsideType(latId);refreshTypeCell(latId);
+}
+
+/* ── SLETTING ── */
+function slettLat(latId){
+  const lat=data.latar.find(l=>l.id===latId);if(!lat)return;
+  if(!confirm('Slette låten «'+lat.navn+'»?\nDenne handlingen kan ikke angres.'))return;
+  data.latar=data.latar.filter(l=>l.id!==latId);
+  data.koblingar=data.koblingar.filter(k=>k.latId!==latId);
+  delete noter[latId]; delete noter2[latId];
+  save();closeModal('modal-latside');buildFilters();renderLatar();renderSamlList();
+  if(activeSamlId)renderSamlDetail(activeSamlId);
+}
+
+function toggleVisIGraf(samlId, val){
+  const s=data.samlingar.find(x=>x.id===samlId);if(!s)return;
+  s.visIGraf=val;
+  save();renderSamlList();
+}
+
+/* ── SAML DRAG-AND-DROP ── */
+let _dragSrcEl=null;
+function samlDragStart(e){
+  _dragSrcEl=e.currentTarget;
+  e.dataTransfer.effectAllowed='move';
+  e.dataTransfer.setData('text/plain',e.currentTarget.dataset.lid);
+  setTimeout(()=>{if(_dragSrcEl)_dragSrcEl.style.opacity='.4';},0);
+}
+function samlDragOver(e){
+  e.preventDefault();e.dataTransfer.dropEffect='move';
+  e.currentTarget.classList.add('drag-over');
+}
+function samlDragLeave(e){e.currentTarget.classList.remove('drag-over');}
+function samlDrop(e,samlId){
+  e.preventDefault();e.currentTarget.classList.remove('drag-over');
+  if(!_dragSrcEl||_dragSrcEl===e.currentTarget){_dragSrcEl=null;return;}
+  const fromId=parseInt(_dragSrcEl.dataset.lid);
+  const toId=parseInt(e.currentTarget.dataset.lid);
+  _dragSrcEl=null;
+  const kobIds=data.koblingar.filter(k=>k.samlId===samlId).map(k=>k.latId);
+  if(!data.samlOrder)data.samlOrder={};
+  if(!data.landTyper)data.landTyper=['Norge','Sverige','Irland'];
+  if(!data.samlKolonner)data.samlKolonner={};
+  data.latar.forEach(l=>{if(l.land===undefined)l.land='';});
+  const ord=data.samlOrder[samlId]?
+    [...data.samlOrder[samlId].filter(id=>kobIds.includes(id)),...kobIds.filter(id=>!data.samlOrder[samlId].includes(id))]:
+    [...kobIds];
+  const fi=ord.indexOf(fromId),ti=ord.indexOf(toId);
+  if(fi===-1||ti===-1)return;
+  ord.splice(fi,1);ord.splice(ti,0,fromId);
+  data.samlOrder[samlId]=ord;
+  save();renderSamlDetail(samlId);
+}
+
+/* ── KOPIER SAMLING ── */
+let _kopierFraSamlId=null;
+
+
+/* ── SAML KOLONNER ── */
+const ALLE_FELT=[{id:'type',label:'Type'},{id:'land',label:'Land'},{id:'kilde',label:'Kilde'},{id:'instrument',label:'Instrument'}];
+let _kolonnerSamlId=null;
+
+function getSamlKolonner(samlId){
+  if(!data.samlKolonner)data.samlKolonner={};
+  if(!data.samlKolonner[samlId])return ALLE_FELT.map(f=>f.id);
+  return data.samlKolonner[samlId];
+}
+
+function openSamlKolonner(samlId){
+  _kolonnerSamlId=samlId;
+  const aktive=getSamlKolonner(samlId);
+  const box=document.getElementById('kolonner-checkboxes');
+  box.innerHTML=ALLE_FELT.map(f=>`
+    <label style="display:flex;align-items:center;gap:.5rem;font-size:.88rem;cursor:pointer;">
+      <input type="checkbox" ${aktive.includes(f.id)?'checked':''} onchange="toggleKolonne('${f.id}',this.checked)">
+      ${f.label}
+    </label>`).join('');
+  document.getElementById('modal-saml-kolonner').classList.add('open');
+}
+
+function toggleKolonne(felt,val){
+  if(!_kolonnerSamlId)return;
+  if(!data.samlKolonner)data.samlKolonner={};
+  let cols=getSamlKolonner(_kolonnerSamlId);
+  if(val){if(!cols.includes(felt))cols.push(felt);}
+  else cols=cols.filter(c=>c!==felt);
+  data.samlKolonner[_kolonnerSamlId]=cols;
+  save();renderSamlDetail(_kolonnerSamlId);
+}
+function openKopierSaml(samlId){
+  _kopierFraSamlId=samlId;
+  const saml=data.samlingar.find(s=>s.id===samlId);if(!saml)return;
+  const antall=data.koblingar.filter(k=>k.samlId===samlId).length;
+  document.getElementById('kopier-saml-info').textContent=
+    'Kopier innholdet fra «'+saml.navn+'» ('+antall+' låter) til en annen samling.';
+  // Fyll eksisterende samlinger (unntatt denne)
+  const sel=document.getElementById('kopier-eks-saml');
+  sel.innerHTML='<option value="">— velg samling —</option>';
+  data.samlingar.filter(s=>s.id!==samlId).forEach(s=>{
+    const o=document.createElement('option');o.value=s.id;o.textContent=s.navn;sel.appendChild(o);
+  });
+  // Fyll inn foreslått navn
+  document.getElementById('kopier-ny-navn').value=saml.navn+' (kopi)';
+  document.getElementById('modal-kopier-saml').classList.add('open');
+}
+
+function _kopierLater(fraSamlId, tilSamlId){
+  const fraIds=data.koblingar.filter(k=>k.samlId===fraSamlId).map(k=>k.latId);
+  const eksIds=new Set(data.koblingar.filter(k=>k.samlId===tilSamlId).map(k=>k.latId));
+  // Flett sammen — legg til de som ikke allerede finnes
+  fraIds.forEach(id=>{
+    if(!eksIds.has(id))data.koblingar.push({latId:id,samlId:tilSamlId});
+  });
+  // Kopier rekkefølge fra kilde hvis målsamlingen ikke har ordre
+  if(data.samlOrder&&data.samlOrder[fraSamlId]){
+    if(!data.samlOrder)data.samlOrder={};
+  if(!data.landTyper)data.landTyper=['Norge','Sverige','Irland'];
+  if(!data.samlKolonner)data.samlKolonner={};
+  data.latar.forEach(l=>{if(l.land===undefined)l.land='';});
+    const eksOrd=data.samlOrder[tilSamlId]||[];
+    const nyOrd=[...eksOrd,...data.samlOrder[fraSamlId].filter(id=>!eksOrd.includes(id)&&fraIds.includes(id))];
+    data.samlOrder[tilSamlId]=nyOrd;
+  }
+}
+
+function kopierTilNy(){
+  const navn=document.getElementById('kopier-ny-navn').value.trim();
+  if(!navn){alert('Fyll inn navn på ny samling.');return;}
+  if(!_kopierFraSamlId)return;
+  const nyId=data.nextSamlId++;
+  data.samlingar.push({id:nyId,navn,type:'',år:''});
+  _kopierLater(_kopierFraSamlId,nyId);
+  save();closeModal('modal-kopier-saml');
+  buildFilters();renderSamlList();
+  activeSamlId=nyId;renderSamlList();renderSamlDetail(nyId);
+  showStatus('Samling «'+navn+'» opprettet med kopiert innhold');
+}
+
+function kopierTilEks(){
+  const tilId=parseInt(document.getElementById('kopier-eks-saml').value);
+  if(!tilId){alert('Velg en samling.');return;}
+  if(!_kopierFraSamlId)return;
+  _kopierLater(_kopierFraSamlId,tilId);
+  save();closeModal('modal-kopier-saml');
+  buildFilters();renderSamlList();
+  activeSamlId=tilId;renderSamlList();renderSamlDetail(tilId);
+  const saml=data.samlingar.find(s=>s.id===tilId);
+  showStatus('Innhold kopiert til «'+(saml?saml.navn:'samlingen')+'»');
+}
+function slettSamling(samlId){
+  const saml=data.samlingar.find(s=>s.id===samlId);if(!saml)return;
+  if(!confirm('Slette samlingen «'+saml.navn+'»?\nKoblingene til låter fjernes også.'))return;
+  data.samlingar=data.samlingar.filter(s=>s.id!==samlId);
+  data.koblingar=data.koblingar.filter(k=>k.samlId!==samlId);
+  activeSamlId=null;
+  save();buildFilters();renderSamlList();
+  document.getElementById('saml-detail').innerHTML='<div class="saml-empty-state">Velg en samling</div>';
+  renderLatar();
+}
+function slettKilde(kilde){
+  const antall=data.latar.filter(l=>l.kilde===kilde).length;
+  if(!confirm('Fjerne kilden «'+kilde+'» fra alle '+antall+' låter?'))return;
+  data.latar.forEach(l=>{if(l.kilde===kilde)l.kilde='';});
+  activeKildeId=null;
+  save();renderKildeList();renderLatar();
+  document.getElementById('kilde-detail').innerHTML='<div class="saml-empty-state">Velg en kilde</div>';
+}
+
+/* ── RELOKALISERING ── */
+
+/* ── BRUKERE ── */
+async function loadUsers(){
+  const res=await fetch('/api/users');
+  const users=await res.json();
+  const el=document.getElementById('users-list');if(!el)return;
+  if(!users.length){el.innerHTML='<em style="color:var(--ink3);">Ingen brukere</em>';return;}
+  el.innerHTML=users.map(u=>`<div style="display:flex;align-items:center;gap:.5rem;padding:.3rem 0;border-bottom:1px solid var(--border);">
+    <span style="flex:1;">${esc(u.name||u.username)} <span style="color:var(--ink3);font-size:.78rem;">(${esc(u.username)})</span></span>
+    <button class="remove-btn" onclick="deleteUser('${esc(u.username)}')">Slett</button>
+  </div>`).join('');
+}
+async function addUser(){
+  const uname=document.getElementById('new-uname').value.trim();
+  const name=document.getElementById('new-name').value.trim();
+  const pass=document.getElementById('new-pass').value;
+  if(!uname||!pass){alert('Fyll inn brukernavn og passord');return;}
+  const res=await fetch('/api/users',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({username:uname,password:pass,name})});
+  if(res.ok){document.getElementById('new-uname').value='';document.getElementById('new-name').value='';document.getElementById('new-pass').value='';loadUsers();}
+  else{const j=await res.json();alert(j.error||'Feil');}
+}
+async function deleteUser(uname){
+  if(!confirm('Slette brukeren «'+uname+'»?'))return;
+  await fetch('/api/users/'+encodeURIComponent(uname),{method:'DELETE'});
+  loadUsers();
+}
+async function changePassword(){
+  const old=document.getElementById('old-pass').value;
+  const ny=document.getElementById('new-pass2').value;
+  if(!old||!ny){alert('Fyll inn begge felt');return;}
+  const res=await fetch('/api/change-password',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({oldPassword:old,newPassword:ny})});
+  if(res.ok){alert('Passord endret');document.getElementById('old-pass').value='';document.getElementById('new-pass2').value='';}
+  else{const j=await res.json();alert(j.error||'Feil');}
+}
+function buildInnstillinger(){
+  autoDetektGammelRot();
+  loadUsers();
+}
+
+function getAllNotStier(){
+  const stier=[];
+  Object.entries(noter).forEach(([id,sti])=>{if(sti)stier.push({type:'noter',id:parseInt(id),sti});});
+  Object.entries(noter2).forEach(([id,arr])=>{
+    (arr||[]).forEach((n,i)=>{if(n.sti)stier.push({type:'noter2',id:parseInt(id),idx:i,sti:n.sti});});
+  });
+  return stier;
+}
+
+function autoDetektGammelRot(){
+  const stier=getAllNotStier().map(s=>s.sti).filter(Boolean);
+  if(!stier.length)return;
+  // Find longest common prefix ending in /
+  let prefix=stier[0];
+  stier.forEach(s=>{
+    let i=0;while(i<prefix.length&&i<s.length&&prefix[i]===s[i])i++;
+    prefix=prefix.slice(0,i);
+  });
+  const lastSlash=prefix.lastIndexOf('/');
+  if(lastSlash>0) prefix=prefix.slice(0,lastSlash+1);
+  const inp=document.getElementById('relo-gammel');
+  if(inp&&prefix) inp.value=prefix;
+}
+
+function pickReloMappe(){
+  alert('Skriv inn den nye URL-stien manuelt, f.eks. /uploads/');
+}
+
+function previewRelo(){
+  const gammel=document.getElementById('relo-gammel').value.trim();
+  const ny=document.getElementById('relo-ny').value.trim();
+  if(!gammel||!ny){alert('Fyll inn både gammel og ny rotmappe.');return;}
+  const stier=getAllNotStier().filter(s=>s.sti.startsWith(gammel));
+  if(!stier.length){alert('Ingen notestier starter med «'+gammel+'».');return;}
+  const list=document.getElementById('relo-list');
+  list.innerHTML=stier.map(s=>{
+    const nysti=ny+s.sti.slice(gammel.length);
+    const lat=data.latar.find(l=>l.id===s.id);
+    return `<div style="padding:.35rem 0;border-bottom:1px solid var(--border);">
+      <div style="font-weight:600;font-size:.8rem;color:var(--ink);">${esc(lat?lat.navn:'Ukjent')}</div>
+      <div style="color:var(--ink3);font-size:.75rem;text-decoration:line-through;">${esc(s.sti)}</div>
+      <div style="color:var(--green);font-size:.75rem;">→ ${esc(nysti)}</div>
+    </div>`;
+  }).join('');
+  list.innerHTML+=`<div style="margin-top:.75rem;font-size:.8rem;color:var(--ink2);">${stier.length} notestier vil bli oppdatert.</div>`;
+  document.getElementById('relo-preview').style.display='';
+}
+
+function utforRelo(){
+  const gammel=document.getElementById('relo-gammel').value.trim();
+  const ny=document.getElementById('relo-ny').value.trim();
+  if(!gammel||!ny)return;
+  let count=0;
+  Object.keys(noter).forEach(id=>{
+    if(noter[id]&&noter[id].startsWith(gammel)){
+      noter[id]=ny+noter[id].slice(gammel.length);count++;
+    }
+  });
+  Object.keys(noter2).forEach(id=>{
+    (noter2[id]||[]).forEach(n=>{
+      if(n.sti&&n.sti.startsWith(gammel)){
+        n.sti=ny+n.sti.slice(gammel.length);count++;
+      }
+    });
+  });
+  save();
+  document.getElementById('relo-preview').style.display='none';
+  showStatus(count+' notestier oppdatert');
+}
+function printSamling(samlId){
+  const saml=data.samlingar.find(s=>s.id===samlId);if(!saml)return;
+  const kobIds2=data.koblingar.filter(k=>k.samlId===samlId).map(k=>k.latId);
+  const ord2=data.samlOrder&&data.samlOrder[samlId]?[...data.samlOrder[samlId].filter(id=>kobIds2.includes(id)),...kobIds2.filter(id=>!(data.samlOrder[samlId]||[]).includes(id))]:[...kobIds2];
+  const linked=ord2.map(id=>data.latar.find(l=>l.id===id)).filter(Boolean);
+  const pCols=getSamlKolonner(samlId);
+  const rows=linked.map((l,i)=>`
+    <tr>
+      <td>${i+1}</td>
+      <td>${esc(l.navn)}</td>
+      ${pCols.includes('type')?`<td>${esc(l.type)||''}</td>`:''}
+      ${pCols.includes('land')?`<td>${esc(l.land)||''}</td>`:''}
+      ${pCols.includes('kilde')?`<td>${esc(l.kilde)||''}</td>`:''}
+      ${pCols.includes('instrument')?`<td>${(l.instrument||[]).join(', ')}</td>`:''}
+    </tr>`).join('');
+  const meta=[saml.type,saml.år].filter(Boolean).join(' · ');
+  const w=window.open('','_blank','width=900,height=700');
+  w.document.write(`<!DOCTYPE html)<html lang="no"><head><meta charset="UTF-8">
+  <title>${esc(saml.navn)}</title>
+  <style>
+    body{font-family:Georgia,serif;margin:2.5cm 2cm;color:#1a1008;}
+    h1{font-size:1.5rem;margin-bottom:.25rem;}
+    .meta{font-size:.85rem;color:#888;margin-bottom:1.5rem;font-style:italic;}
+    table{width:100%;border-collapse:collapse;font-size:.9rem;}
+    th{text-align:left;font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:#888;border-bottom:1.5px solid #ccc;padding:.3rem .5rem;}
+    td{padding:.35rem .5rem;border-bottom:1px solid #eee;vertical-align:top;}
+    tr:nth-child(even) td{background:#faf7f2;}
+    @media print{body{margin:1.5cm 1.5cm;}@page{margin:1.5cm;}}
+  
+.drag-handle{cursor:grab;color:var(--ink3);font-size:1rem;margin-right:.35rem;user-select:none;flex-shrink:0;}
+.drag-handle:active{cursor:grabbing;}
+.lat-in-saml.drag-over{border-top:2px solid var(--accent2);background:var(--hi);}
+</style></head><body>
+  <h1>${esc(saml.navn)}</h1>
+  <div class="meta">${meta} &nbsp;·&nbsp; ${linked.length} låtar</div>
+  <table>
+    <thead><tr><th>#</th><th>Navn</th>${pCols.includes('type')?'<th>Type</th>':''}${pCols.includes('land')?'<th>Land</th>':''}${pCols.includes('kilde')?'<th>Kilde</th>':''}${pCols.includes('instrument')?'<th>Instrument</th>':''}</tr></thead>
+    <tbody>${rows}</tbody>
+  </table>
+  </body></html>`);
+  w.document.close();
+  setTimeout(()=>w.print(),400);
+}
+
+function printSettliste(samlId){
+  const saml=data.samlingar.find(s=>s.id===samlId);if(!saml)return;
+  const kobIds2=data.koblingar.filter(k=>k.samlId===samlId).map(k=>k.latId);
+  const ord2=data.samlOrder&&data.samlOrder[samlId]?[...data.samlOrder[samlId].filter(id=>kobIds2.includes(id)),...kobIds2.filter(id=>!(data.samlOrder[samlId]||[]).includes(id))]:[...kobIds2];
+  const linked=ord2.map(id=>data.latar.find(l=>l.id===id)).filter(Boolean);
+  const rows=linked.map((l,i)=>`
+    <tr>
+      <td class="nr">${i+1}</td>
+      <td>${esc(l.navn)}</td>
+    </tr>`).join('');
+  const meta=[saml.type,saml.år].filter(Boolean).join(' · ');
+  const w=window.open('','_blank','width=700,height=700');
+  w.document.write(`<!DOCTYPE html><html lang="no"><head><meta charset="UTF-8">
+  <title>Settliste — ${esc(saml.navn)}</title>
+  <style>
+    body{font-family:Georgia,serif;margin:2.5cm 2cm;color:#1a1008;}
+    h1{font-size:1.5rem;margin-bottom:.25rem;}
+    .meta{font-size:.85rem;color:#888;margin-bottom:1.75rem;font-style:italic;}
+    table{width:100%;border-collapse:collapse;}
+    td{padding:.5rem .4rem;border-bottom:1px solid #e8e0d0;font-size:1rem;}
+    td.nr{width:2.5rem;color:#aaa;font-size:.85rem;text-align:right;padding-right:.75rem;}
+    tr:last-child td{border-bottom:none;}
+    @media print{body{margin:1.5cm;}@page{margin:1.5cm;}}
+  
+.drag-handle{cursor:grab;color:var(--ink3);font-size:1rem;margin-right:.35rem;user-select:none;flex-shrink:0;}
+.drag-handle:active{cursor:grabbing;}
+.lat-in-saml.drag-over{border-top:2px solid var(--accent2);background:var(--hi);}
+</style></head><body>
+  <h1>${esc(saml.navn)}</h1>
+  <div class="meta">${meta}</div>
+  <table><tbody>${rows}</tbody></table>
+  </body></html>`);
+  w.document.close();
+  setTimeout(()=>w.print(),400);
+}
+function openGraph(){
+  const w=window.open('/graph','_blank','width=1200,height=800');
+  if(w){ setTimeout(()=>{ try{w.postMessage({type:'graph-data',data},'*');}catch(e){} },800); }
+}
+function openPDF(id){
+  const s=noter[id];if(!s)return;
+  window.open(s.startsWith('http')?s:'/uploads/'+encodeURIComponent(s.split(/[/\\]/).pop()),'_blank');
+}
+
+function dtOver(e,id){e.preventDefault();const d=document.getElementById('dt-'+id);if(d)d.classList.add('over');}
+function dtLeave(id){const d=document.getElementById('dt-'+id);if(d)d.classList.remove('over');}
+function dtDrop(e,id){
+  e.preventDefault();dtLeave(id);
+  const f=e.dataTransfer.files[0];if(!f)return;
+  const p=f.path||f.name;
+  const i=document.getElementById('ni-'+id);if(i){i.value=p;i.focus();}
+}
+
+function dropOver(e,z){e.preventDefault();document.getElementById(z).classList.add('over');}
+function dropLeave(z){document.getElementById(z).classList.remove('over');}
+function dropFileModal(e,inp,z){
+  e.preventDefault();dropLeave(z);
+  const f=e.dataTransfer.files[0];if(!f)return;
+  const p=f.path||f.name;
+  document.getElementById(inp).value=p;
+  const zone=document.getElementById(z);
+  zone.textContent=p.split(/[/\\]/).pop()||p;
+  zone.classList.add('has-file');
+}
+
+function sortLatar(f){if(latSort.field===f)latSort.asc=!latSort.asc;else{latSort.field=f;latSort.asc=true;}document.querySelectorAll('thead th').forEach(t=>t.classList.remove('sorted'));const el=document.getElementById('th-'+f);if(el)el.classList.add('sorted');renderLatar();}
+
+/* samlinger */
+function renderSamlList(){
+  const q=document.getElementById('search-saml').value.trim().toLowerCase();
+  const rows=data.samlingar.filter(s=>!q||s.navn.toLowerCase().includes(q));
+  const c=document.getElementById('saml-items');c.innerHTML='';
+  rows.forEach(s=>{
+    const n=data.koblingar.filter(k=>k.samlId===s.id).length;
+    const d=document.createElement('div');d.className='saml-item'+(activeSamlId===s.id?' active':'');
+    d.innerHTML=`<div class="si-navn">${esc(s.navn)}</div><div class="si-meta">${[s.år,n+' låtar'].filter(Boolean).join(' · ')}</div>`;
+    d.onclick=()=>{activeSamlId=s.id;renderSamlList();renderSamlDetail(s.id);};
+    c.appendChild(d);
+  });
+}
+
+function renderSamlDetail(samlId){
+  const saml=data.samlingar.find(s=>s.id===samlId);if(!saml)return;
+  const kobIds=data.koblingar.filter(k=>k.samlId===samlId).map(k=>k.latId);
+  const order=data.samlOrder&&data.samlOrder[samlId]?data.samlOrder[samlId]:kobIds;
+  const orderedIds=[...order.filter(id=>kobIds.includes(id)),...kobIds.filter(id=>!order.includes(id))];
+  const linked=orderedIds.map(id=>data.latar.find(l=>l.id===id)).filter(Boolean);
+  const det=document.getElementById('saml-detail');
+  const cols=getSamlKolonner(samlId);
+  det.innerHTML=`
+    <div class="saml-detail-header">
+      <h2>${esc(saml.navn)}</h2>
+      <span class="meta">${[saml.type,saml.år].filter(Boolean).join(' · ')||''}</span>
+      <span class="spacer"></span>
+      <button class="btn" onclick="printSamling(${saml.id})">⎙ Skriv ut</button>
+      <button class="btn" onclick="printSettliste(${saml.id})">⎙ Settliste</button>
+      <label style="display:flex;align-items:center;gap:.35rem;font-size:.78rem;color:var(--ink2);cursor:pointer;"><input type="checkbox" ${saml.visIGraf!==false?"checked":""} onchange="toggleVisIGraf(${saml.id},this.checked)"> Med i graf</label>
+      <button class="btn" onclick="openSamlKolonner(${saml.id})">Kolonner</button>
+      <button class="btn" onclick="openKopierSaml(${saml.id})">Kopier</button>
+      <button class="btn" style="color:var(--accent);border-color:var(--accent2);" onclick="slettSamling(${saml.id})">Slett</button>
+      <button class="btn" onclick="openEditSaml(${saml.id})">Rediger</button>
+    </div>
+    <div class="saml-detail-body">
+      <div class="add-lat-area" style="margin-bottom:1.4rem;">
+        <div class="sec-title">Legg til låt</div>
+        <input class="add-lat-search" type="text" id="alq-${samlId}" placeholder="Søk eller skriv navn på ny låt…" oninput="renderALR(${samlId})" onkeydown="alrKeydown(event,${samlId})">
+        <div class="add-lat-results" id="alr-${samlId}"></div>
+      </div>
+      <div class="sec-title">${linked.length} låter i denne samlingen</div>
+      <div>
+        ${linked.length===0
+          ?'<div style="color:var(--ink3);font-style:italic;font-size:.84rem;padding:.4rem 0;">Ingen låter ennå</div>'
+          :linked.map(l=>`<div class="lat-in-saml" draggable="true" data-lid="${l.id}" data-sid="${samlId}" ondragstart="samlDragStart(event)" ondragend="this.style.opacity='1'" ondragover="samlDragOver(event)" ondragleave="samlDragLeave(event)" ondrop="samlDrop(event,${samlId})">
+            <span class="drag-handle" title="Dra for å sortere">⠿</span>
+            <a class="lat-navn-link" onclick="openLatSide(${l.id})">${esc(l.navn)}</a>
+            ${cols.includes('type')&&l.type?`<span class="li-type">${esc(l.type)}</span>`:''}
+            ${cols.includes('land')&&l.land?`<span class="li-type" style="color:var(--green);">${esc(l.land)}</span>`:''}
+            ${cols.includes('kilde')&&l.kilde?`<span class="li-type" style="color:var(--ink3);font-style:italic;">${esc(l.kilde)}</span>`:''}
+            ${cols.includes('instrument')&&(l.instrument||[]).length?`<span class="li-type">${(l.instrument||[]).join(', ')}</span>`:''}
+            <button class="remove-btn" onclick="removeLatFromSaml(${l.id},${samlId})">Fjern</button>
+          </div>`).join('')}
+      </div>
+    </div>`;
+}
+
+function renderALR(samlId){
+  const q=((document.getElementById('alq-'+samlId)||{}).value||'').trim();
+  const already=new Set(data.koblingar.filter(k=>k.samlId===samlId).map(k=>k.latId));
+  const c=document.getElementById('alr-'+samlId);if(!c)return;
+  if(!q){c.innerHTML='';return;}
+  const ql=q.toLowerCase();
+  // All matching latar, both already-in and not-in
+  const m=data.latar.filter(l=>l.navn.toLowerCase().includes(ql)).slice(0,20);
+  const exactMatch=data.latar.find(l=>l.navn.toLowerCase()===ql);
+  let out=m.map(l=>{
+    const inSaml=already.has(l.id);
+    return `<div class="alr${inSaml?' alr-in':''}" ${inSaml?'':'onclick="addLatToSaml('+l.id+','+samlId+')"'}>
+      <span style="flex:1;">${esc(l.navn)}</span>
+      ${l.type?`<span class="alr-type">${esc(l.type)}</span>`:''}
+      ${inSaml?'<span class="alr-type" style="color:var(--green);font-style:italic;">allerede i samlingen</span>':''}
+    </div>`;
+  }).join('');
+  // Only show create option if no exact name match exists anywhere
+  if(!exactMatch){
+    window._pendingNyLat=q;
+    out+=`<div class="alr alr-create" onclick="createAndAddLat(window._pendingNyLat,${samlId})">
+      <span style="flex:1;font-style:italic;">Opprett «${esc(q)}» og legg til</span>
+      <span class="alr-type" style="color:var(--accent);">+ Ny låt</span>
+    </div>`;
+  }
+  c.innerHTML=out;
+}
+function createAndAddLat(navn,samlId){
+  const id=data.nextLatId++;
+  data.latar.push({id,navn,type:'',kilde:'',instrument:[]});
+  data.koblingar.push({latId:id,samlId});
+  save();buildFilters();renderLatar();
+  renderSamlDetail(samlId);renderSamlList();
+  const inp=document.getElementById('alq-'+samlId);
+  if(inp){inp.value='';document.getElementById('alr-'+samlId).innerHTML='';}
+}
+function alrKeydown(e,samlId){
+  if(e.key!=='Enter')return;
+  const q=((document.getElementById('alq-'+samlId)||{}).value||'').trim();
+  if(!q)return;
+  const already=new Set(data.koblingar.filter(k=>k.samlId===samlId).map(k=>k.latId));
+  const ql=q.toLowerCase();
+  const exact=data.latar.find(l=>l.navn.toLowerCase()===ql);
+  if(exact){
+    if(!already.has(exact.id))addLatToSaml(exact.id,samlId);
+    // if already in saml, do nothing — it's shown as greyed out
+    return;
+  }
+  const m=data.latar.filter(l=>!already.has(l.id)&&l.navn.toLowerCase().includes(ql));
+  if(m.length===1)addLatToSaml(m[0].id,samlId);
+  else createAndAddLat(q,samlId);
+}
+
+function addLatToSaml(latId,samlId){
+  if(!data.koblingar.find(k=>k.latId===latId&&k.samlId===samlId))data.koblingar.push({latId,samlId});
+  save();renderSamlDetail(samlId);renderSamlList();buildFilters();renderLatar();
+}
+function removeLatFromSaml(latId,samlId){
+  data.koblingar=data.koblingar.filter(k=>!(k.latId===latId&&k.samlId===samlId));
+  save();renderSamlDetail(samlId);renderSamlList();buildFilters();renderLatar();
+}
+
+
+/* instrument picker */
+let modalInst=[];
+function renderInstPicker(){
+  const tags=document.getElementById('ml-inst-tags');
+  const opts=document.getElementById('ml-inst-opts');
+  if(!tags||!opts)return;
+  tags.innerHTML=modalInst.map(i=>`<span class="inst-tag">${esc(i)}<span class="rm" onclick="removeModalInst('${esc(i)}')">✕</span></span>`).join('');
+  opts.innerHTML=data.instTyper.map(i=>`<span class="inst-opt${modalInst.includes(i)?' selected':''}" onclick="toggleModalInst('${esc(i)}')">${esc(i)}</span>`).join('');
+}
+function toggleModalInst(i){
+  if(modalInst.includes(i))modalInst=modalInst.filter(x=>x!==i);
+  else modalInst.push(i);
+  renderInstPicker();
+}
+function removeModalInst(i){modalInst=modalInst.filter(x=>x!==i);renderInstPicker();}
+function addInstOption(){
+  const inp=document.getElementById('ml-inst-new');
+  const v=inp.value.trim();if(!v)return;
+  if(!data.instTyper.includes(v))data.instTyper.push(v);
+  if(!modalInst.includes(v))modalInst.push(v);
+  inp.value='';save();renderInstPicker();buildFiltersPreserve();renderLatar();
+}
+
+/* låtside modal */
+let currentLatSideId=null;
+let pdfList=[], pdfIndex=0;
+function openLatSide(latId){
+  currentLatSideId=latId;
+  const lat=data.latar.find(l=>l.id===latId);if(!lat)return;
+  const tittelEl=document.getElementById('mls-tittel');
+  tittelEl.textContent=lat.navn;
+  tittelEl.contentEditable='true';
+  tittelEl.style.outline='none';
+  tittelEl.style.cursor='text';
+  tittelEl.onblur=()=>{ const lat2=data.latar.find(l=>l.id===latId); if(lat2&&tittelEl.textContent.trim()){lat2.navn=tittelEl.textContent.trim();save();renderLatar();} };
+  renderLatsideType(latId);
+  renderLatsideLand(latId);
+  renderLatsideKilde(latId);
+  renderLatsideInst(latId);
+  const samlar=getSamlForLat(latId);
+  document.getElementById('mls-samlingar').innerHTML=samlar.length
+    ?samlar.map(s=>`<span class="saml-tag" style="margin:2px;">${esc(s.navn)}</span>`).join('')
+    :'<span style="color:var(--ink3);font-style:italic;font-size:.84rem;">Ingen samlinger</span>';
+  document.getElementById('mls-new-tittel').value=lat.navn;
+  ['mls-new-sti','mls-new-komm'].forEach(id=>document.getElementById(id).value='');
+  renderNoterList(latId);
+  buildPDFList(latId);
+  document.getElementById('modal-latside').classList.add('open');
+}
+
+function renderLatsideInst(latId){
+  const el=document.getElementById('mls-inst');if(!el)return;
+  const lat=data.latar.find(l=>l.id===latId);if(!lat)return;
+  const inst=lat.instrument||[];
+  const available=data.instTyper.filter(i=>!inst.includes(i));
+  let out=inst.map(i=>`<span class="inst-tag" style="margin:2px;">${esc(i)}<span class="itag-rm" onclick="removeLatsideInst(${latId},'${esc(i)}')">✕</span></span>`).join('');
+  out+=`<select class="inst-inline-select" style="margin:2px;" onchange="addLatsideInst(${latId},this)">
+    <option value="">+ Instrument</option>
+    ${available.map(i=>`<option value="${esc(i)}">${esc(i)}</option>`).join('')}
+    <option value="__ny__">— Nytt instrument…</option>
+  </select>`;
+  el.innerHTML=out;
+}
+function addLatsideInst(latId,sel){
+  const val=sel.value;if(!val)return;
+  if(val==='__ny__'){
+    showNyttInstInput(latId,'mls-inst',sel);
+    return;
+  }
+  const lat=data.latar.find(l=>l.id===latId);if(!lat)return;
+  if(!lat.instrument)lat.instrument=[];
+  if(!lat.instrument.includes(val))lat.instrument.push(val);
+  save();renderLatsideInst(latId);
+  const c=document.getElementById('ic-'+latId);if(c)c.innerHTML=renderInstCell(latId);
+}
+function removeLatsideInst(latId,inst){
+  const lat=data.latar.find(l=>l.id===latId);if(!lat)return;
+  lat.instrument=(lat.instrument||[]).filter(i=>i!==inst);
+  save();renderLatsideInst(latId);
+  const c=document.getElementById('ic-'+latId);if(c)c.innerHTML=renderInstCell(latId);
+}
+
+function showNyttInstInput(latId, containerId, sel){
+  sel.value='';
+  const container=document.getElementById(containerId);if(!container)return;
+  const row=document.createElement('div');
+  row.style.cssText='display:flex;gap:4px;margin-top:4px;align-items:center;';
+  row.innerHTML=`<input id="nytt-inst-inp-${latId}" type="text" placeholder="Instrumentnavn…" style="font-family:inherit;font-size:.78rem;padding:2px 6px;border:1px solid var(--accent2);border-radius:3px;background:var(--paper);color:var(--ink);flex:1;outline:none;">
+  <button onclick="confirmNyttInst(${latId},'${containerId}')" style="font-size:.72rem;padding:2px 7px;border:1px solid var(--green);border-radius:3px;background:var(--green-bg);color:var(--green);cursor:pointer;">OK</button>
+  <button onclick="document.getElementById('${containerId}').querySelector('div[style*=flex]')?.remove()" style="font-size:.72rem;padding:2px 6px;border:1px solid var(--border2);border-radius:3px;background:none;color:var(--ink3);cursor:pointer;">✕</button>`;
+  container.appendChild(row);
+  setTimeout(()=>document.getElementById('nytt-inst-inp-'+latId)?.focus(),30);
+  document.getElementById('nytt-inst-inp-'+latId)?.addEventListener('keydown',e=>{
+    if(e.key==='Enter')confirmNyttInst(latId,containerId);
+    if(e.key==='Escape')row.remove();
+  });
+}
+function confirmNyttInst(latId, containerId){
+  const inp=document.getElementById('nytt-inst-inp-'+latId);if(!inp)return;
+  const val=inp.value.trim();if(!val)return;
+  if(!data.instTyper.includes(val))data.instTyper.push(val);
+  const lat=data.latar.find(l=>l.id===latId);if(!lat)return;
+  if(!lat.instrument)lat.instrument=[];
+  if(!lat.instrument.includes(val))lat.instrument.push(val);
+  save();
+  if(containerId==='mls-inst') renderLatsideInst(latId);
+  else { const c=document.getElementById(containerId);if(c)c.innerHTML=renderInstCell(latId); }
+  renderLatar();
+}
+
+function toggleLatsideLeft(){
+  const el=document.getElementById('latside-left');
+  if(!el)return;
+  el.style.display=el.style.display==='none'?'':'none';
+}
+function closeLatsideIfBg(e){if(e.target.id==='modal-latside')closeModal('modal-latside');}
+function buildPDFList(latId){
+  pdfList=[];
+  const legacy=noter[latId];
+  if(legacy)pdfList.push({tittel:'Notat',sti:legacy});
+  (noter2[latId]||[]).forEach(n=>{if(n.sti)pdfList.push({tittel:n.tittel||'Notat',sti:n.sti});});
+  pdfIndex=0;
+  showPDF();
+}
+function showPDF(){
+  const viewer=document.getElementById('pdf-viewer');
+  const title=document.getElementById('pdf-title');
+  const idx=document.getElementById('pdf-index');
+  if(!pdfList.length){
+    viewer.src='about:blank';
+    title.textContent='Ingen PDF valgt';
+    idx.textContent='';
+    return;
+  }
+  const n=pdfList[pdfIndex];
+  viewer.src='file://'+n.sti;
+  title.textContent=n.tittel+' — '+(n.sti.split(/[/\\]/).pop()||n.sti);
+  idx.textContent=pdfList.length>1?(pdfIndex+1)+'/'+pdfList.length:'';
+}
+function jumpToPDF(noterIdx){
+  // offset by 1 if legacy noter exists
+  const offset=(noter[currentLatSideId])?1:0;
+  pdfIndex=noterIdx+offset;
+  showPDF();
+}
+function prevPDF(){if(pdfIndex>0){pdfIndex--;showPDF();}}
+function nextPDF(){if(pdfIndex<pdfList.length-1){pdfIndex++;showPDF();}}
+function renderNoterList(latId){
+  const list=document.getElementById('mls-noter-list');if(!list)return;
+  const notar=noter2[latId]||[];
+  // Also show legacy single noter entry if present
+  const legacy=noter[latId];
+  let items=notar.map((n,i)=>`
+    <div class="notat-row">
+      <div style="flex:1;">
+        <div class="notat-tittel">${esc(n.tittel)||'<span style="color:var(--ink3);font-style:italic;">Uten tittel</span>'}</div>
+        ${n.sti?`<div class="notat-sti" onclick="openPDFSti('${esc(n.sti).replace(/'/g,"\'")}')">${esc(n.sti.split(/[/\\]/).pop()||n.sti)}</div>`:''}
+        ${n.kommentar?`<div class="notat-komm">${esc(n.kommentar)}</div>`:''}
+      </div>
+      <button class="remove-btn" onclick="removeNotat(${latId},${i})">Fjern</button>
+    </div>`).join('');
+  if(legacy&&!notar.find(n=>n.sti===legacy)){
+    items=`<div class="notat-row">
+      <div style="flex:1;">
+        <div class="notat-tittel" style="color:var(--ink3);font-style:italic;">Tidligere notat</div>
+        <div class="notat-sti" onclick="openPDFSti('${esc(legacy).replace(/'/g,"\'")}') ">${esc(legacy.split(/[/\\]/).pop()||legacy)}</div>
+      </div>
+    </div>`+items;
+  }
+  list.innerHTML=items||'<div style="color:var(--ink3);font-style:italic;font-size:.84rem;margin-bottom:.5rem;">Ingen noter ennå</div>';
+}
+function addNotatToLat(){
+  const latId=currentLatSideId;if(!latId)return;
+  const tittel=document.getElementById('mls-new-tittel').value.trim();
+  const sti=document.getElementById('mls-new-sti').value.trim();
+  const kommentar=document.getElementById('mls-new-komm').value.trim();
+  if(!tittel&&!sti){alert('Fyll inn tittel eller filsti');return;}
+  if(!noter2[latId])noter2[latId]=[];
+  noter2[latId].push({tittel,sti,kommentar});
+  save();renderNoterList(latId);buildPDFList(latId);
+  document.getElementById('mls-new-tittel').value=lat.navn;
+  ['mls-new-sti','mls-new-komm'].forEach(id=>document.getElementById(id).value='');
+}
+function removeNotat(latId,idx){
+  if(!noter2[latId])return;
+  noter2[latId].splice(idx,1);
+  save();renderNoterList(latId);buildPDFList(latId);
+}
+function openPDFSti(sti){
+  if(!sti)return;
+  window.open(sti.startsWith('http')?sti:'/uploads/'+encodeURIComponent(sti.split(/[/\\]/).pop()),'_blank');
+}
+
+
+async function pickPDFForNoterCell(id){
+  const fi=document.createElement('input');fi.type='file';fi.accept='.pdf';
+  fi.onchange=async()=>{if(!fi.files[0])return;const url=await uploadPDF(fi.files[0]);if(url){const inp=document.getElementById('ni-'+id);if(inp)inp.value=url;}};
+  fi.click();
+}
+async function pickPDFForNotat(){
+  const inp=document.createElement('input');inp.type='file';inp.accept='.pdf';
+  inp.onchange=async()=>{if(!inp.files[0])return;const url=await uploadPDF(inp.files[0]);if(url)document.getElementById('mls-new-sti').value=url;};
+  inp.click();
+}
+async function pickPDFForModal(){
+  const inp=document.createElement('input');inp.type='file';inp.accept='.pdf';
+  inp.onchange=async()=>{if(!inp.files[0])return;const url=await uploadPDF(inp.files[0]);if(url)document.getElementById('ml-noter').value=url;};
+  inp.click();
+}
+async function uploadPDF(file){
+  const fd=new FormData();fd.append('file',file);
+  const res=await fetch('/api/upload',{method:'POST',body:fd});
+  const json=await res.json();
+  return json.url||null;
+}
+/* modal lat */
+function openNyLatModal(){
+  // Create a blank lat and open it for editing
+  const id=data.nextLatId++;
+  data.latar.push({id,navn:'Ny låt',type:'',kilde:'',instrument:[]});
+  save();buildFilters();renderLatar();
+  openLatSide(id);
+}
+function openEditLat(id){
+  const lat=data.latar.find(l=>l.id===id);if(!lat)return;
+  editingLatId=id;
+  document.getElementById('modal-lat-title').textContent='Rediger låt';
+  document.getElementById('ml-namn').value=lat.navn;
+  document.getElementById('ml-type').value=lat.type;
+  document.getElementById('ml-kilde').value=lat.kilde;
+  const sti=noter[id]||'';document.getElementById('ml-noter').value=sti;
+  modalInst=[...(lat.instrument||[])];renderInstPicker();
+  const d=document.getElementById('ml-drop');
+  if(sti){d.textContent=sti.split(/[/\\]/).pop()||sti;d.classList.add('has-file');}else{d.textContent='Slipp PDF her for å hente filsti';d.classList.remove('has-file');}
+  document.getElementById('modal-lat').classList.add('open');
+}
+function saveLatModal(){
+  const navn=document.getElementById('ml-namn').value.trim();if(!navn){alert('Navn er påkrevd');return;}
+  const type=document.getElementById('ml-type').value;
+  const kilde=document.getElementById('ml-kilde').value.trim();
+  const sti=document.getElementById('ml-noter').value.trim();
+  if(editingLatId){const lat=data.latar.find(l=>l.id===editingLatId);if(lat){lat.navn=navn;lat.type=type;lat.kilde=kilde;lat.instrument=[...modalInst];}if(sti)noter[editingLatId]=sti;else delete noter[editingLatId];}
+  else{const id=data.nextLatId++;data.latar.push({id,navn,type,kilde,instrument:[...modalInst]});if(sti)noter[id]=sti;}
+  save();closeModal('modal-lat');buildFilters();renderLatar();
+}
+
+/* modal samling */
+function openNySamlModal(){
+  editingSamlId=null;
+  document.getElementById('modal-saml-title').textContent='Ny samling';
+  ['ms-namn','ms-type','ms-year'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('modal-saml').classList.add('open');
+}
+function openEditSaml(id){
+  const s=data.samlingar.find(x=>x.id===id);if(!s)return;
+  editingSamlId=id;
+  document.getElementById('modal-saml-title').textContent='Rediger samling';
+  document.getElementById('ms-namn').value=s.navn;
+  document.getElementById('ms-type').value=s.type;
+  document.getElementById('ms-year').value=s.år;
+  document.getElementById('modal-saml').classList.add('open');
+}
+function saveSamlModal(){
+  const navn=document.getElementById('ms-namn').value.trim();if(!navn){alert('Navn er påkrevd');return;}
+  const type=document.getElementById('ms-type').value.trim(),år=document.getElementById('ms-year').value.trim();
+  if(editingSamlId){const s=data.samlingar.find(x=>x.id===editingSamlId);if(s){s.navn=navn;s.type=type;s.år=år;}}
+  else data.samlingar.push({id:data.nextSamlId++,navn,type,år});
+  save();closeModal('modal-saml');buildFilters();renderSamlList();
+  if(editingSamlId&&activeSamlId===editingSamlId)renderSamlDetail(editingSamlId);
+}
+
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+document.querySelectorAll('.modal-bg').forEach(bg=>bg.addEventListener('click',e=>{if(e.target===bg)bg.classList.remove('open');}));
+
+
+function lastNedBackup(){
+  window.open('/api/backup','_blank');
+}
+fetch('/api/whoami').then(r=>r.json()).then(u=>{
+  const el=document.getElementById('user-name');
+  if(el)el.textContent=u.name||u.username;
+}).catch(()=>{});
+load().then(()=>{
+  buildFilters();
+  renderLatar();
+  document.getElementById('header-subtitle').textContent=data.latar.length+' låter · '+data.samlingar.length+' samlinger';
+});
+</script>
+</body>
+</html>
